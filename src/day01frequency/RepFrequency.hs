@@ -1,6 +1,6 @@
 
 -- works but super slow
--- real	7m27.204s
+-- real	2m17.641s
 main = do
         contents <- readFile "input"
         let list = words contents
@@ -14,7 +14,7 @@ findFirstRepeating frequency [] (x:xs) = findFirstRepeating (frequency + x) [fre
 
 findFirstRepeating frequency prevFreqs (x:xs)
                                         | nextFreq `elem` prevFreqs = nextFreq
-                                        | otherwise = findFirstRepeating nextFreq (prevFreqs ++ [nextFreq]) xs
+                                        | otherwise = findFirstRepeating nextFreq (nextFreq : prevFreqs) xs
                                         where nextFreq = frequency + x
 
 findFirstRepeating frequency prevFreqs [] = error "exhausted shifts"
