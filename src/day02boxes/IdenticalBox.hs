@@ -11,7 +11,7 @@ main = do
         let boxids = splitOn "\n" contents
         let foundWordPair = findTheWord boxids
         let zippedWords = zip (fst foundWordPair) (snd foundWordPair)
-        let sameLetters = filterSameLetters
+        let sameLetters = filterSameLetters zippedWords
         print sameLetters
 
 
@@ -28,5 +28,5 @@ hasOneDiffChar word1 word2 = countDiffChars (zip word1 word2) == 1
 
 countDiffChars zippedWords = sum ([1 | pair <- zippedWords, (fst pair) /= (snd pair)])
 
-filterSameLetters = [fst pair | pair <- zippedWords, (fst pair) == (snd pair)]
+filterSameLetters zippedWords = [fst pair | pair <- zippedWords, (fst pair) == (snd pair)]
 
