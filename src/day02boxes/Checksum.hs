@@ -1,5 +1,3 @@
-module Checksum where
-
 import System.IO
 import Data.Map
 import Data.List.Split

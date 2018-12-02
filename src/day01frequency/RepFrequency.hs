@@ -34,8 +34,6 @@ removePlus input = if input !! 0 == '+'
 
 parseInt str = read str :: Int
 
---splitOn :: (String, IO) -> a
---splitOn x y = print "get this out of the way"
 --sum :: (Num a) => [a] -> a
 --sum _ = 0
 --sum (x:xs) = x + sum xs

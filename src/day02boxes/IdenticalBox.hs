@@ -1,5 +1,3 @@
-module IdenticalBox where
-
 import System.IO
 import Data.Map
 import Data.List.Split
@@ -13,8 +11,6 @@ main = do
         let zippedWords = zip (fst foundWordPair) (snd foundWordPair)
         let sameLetters = filterSameLetters zippedWords
         print sameLetters
-
-
 
 findTheWord :: [String] -> (String, String)
 findTheWord [] = error "no word found"
