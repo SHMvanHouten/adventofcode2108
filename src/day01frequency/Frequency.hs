@@ -1,16 +1,13 @@
 module Frequency where
 
-import System.IO
-import Data.List.Split
-
 main = do
         contents <- readFile "input"
-        let frequencyShifts = map parseInt (map removePlus (splitOn "\n" contents))
+        let frequencyShifts = map parseInt (map removePlus (words contents))
         print (sum frequencyShifts)
 
 --frequency = do
 --              contents <- readFile "input"
---              map parseInt (map removePlus (splitOn "\n" contents))
+--              map parseInt (map removePlus (words contents))
 
 removePlus input = if input !! 0 == '+'
                         then tail input

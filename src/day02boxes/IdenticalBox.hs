@@ -1,12 +1,10 @@
-import System.IO
 import Data.Map
-import Data.List.Split
 import Data.List
 import Data.Maybe
 
 main = do
         contents <- readFile "boxids.txt"
-        let boxids = splitOn "\n" contents
+        let boxids = words contents
         let foundWordPair = findTheWord boxids
         let zippedWords = zip (fst foundWordPair) (snd foundWordPair)
         let sameLetters = filterSameLetters zippedWords

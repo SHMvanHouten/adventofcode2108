@@ -1,11 +1,9 @@
 
-import System.IO
-import Data.List.Split
 -- works but super slow
 -- real	7m27.204s
 main = do
         contents <- readFile "input"
-        let list = splitOn "\n" contents
+        let list = words contents
         let frequencyShifts = map parseInt (map removePlus list)
 
         print (findFirstRepeating 0 [] (cycle frequencyShifts))

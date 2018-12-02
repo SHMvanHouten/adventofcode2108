@@ -1,10 +1,8 @@
-import System.IO
 import Data.Map
-import Data.List.Split
 
 main = do
         contents <- readFile "boxids.txt"
-        let boxids = splitOn "\n" contents
+        let boxids = words contents
         let charCountList = Prelude.map (getCharCountsPerWord) boxids
         let doubles = countDoubles charCountList
         let trips = countTriples charCountList
