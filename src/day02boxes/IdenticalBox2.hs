@@ -9,13 +9,6 @@ main = do
         let boxids = splitOn "\n" contents
         print (findTheWord boxids)
 
-sameCharsIfOneCharDiff word1 word2
-                        | length sameChars == ((length word1) -1) = Just sameChars
-                        | otherwise = Nothing
-                        where sameChars = filterSameLetters (zip word1 word2)
-
-filterSameLetters zippedWords = [fst pair | pair <- zippedWords, (fst pair) == (snd pair)]
-
 findTheWord :: [String] -> String
 findTheWord [] = error "no word found"
 findTheWord [x] = error "no word found"
@@ -33,3 +26,10 @@ findOneCharDiff word (y:ys)
                       | otherwise = findOneCharDiff word ys
                       where foundWord = sameCharsIfOneCharDiff word y
 
+
+sameCharsIfOneCharDiff word1 word2
+                        | length sameChars == ((length word1) -1) = Just sameChars
+                        | otherwise = Nothing
+                        where sameChars = filterSameLetters (zip word1 word2)
+
+filterSameLetters zippedWords = [fst pair | pair <- zippedWords, (fst pair) == (snd pair)]

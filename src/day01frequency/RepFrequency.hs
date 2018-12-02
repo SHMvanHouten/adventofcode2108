@@ -1,32 +1,25 @@
-module RepFrequency where
 
 import System.IO
 import Data.List.Split
-
+-- works but super slow
+-- real	7m27.204s
 main = do
         contents <- readFile "input"
         let list = splitOn "\n" contents
         let frequencyShifts = map parseInt (map removePlus list)
 
-        print findFirstRepeating 0 [] frequencyShifts
+        print (findFirstRepeating 0 [] (cycle frequencyShifts))
 
-
-findFirstRepeating :: (Int, [Int], [Int]) -> Int
---findFirstRepeating frequency prevFreqs (x:xs) = do
---                                                  let nextFreq = frequency + x
---                                                  if nextFreq `elem` prevFreqs
---                                                        then return nextFreq
---                                                        else (findFirstRepeating nextFreq (prevFreqs ++ [nextFreq]) xs)
+findFirstRepeating :: Int -> [Int] -> [Int] -> Int
 
 findFirstRepeating frequency [] (x:xs) = findFirstRepeating (frequency + x) [frequency + x] xs
 
-findFirstRepeating frequency [y] (x:xs)
-                                      | (frequency + x) == y = y
-                                      | otherwise = findFirstRepeating (frequency + x) ([y, (frequency + x)]) xs
+findFirstRepeating frequency prevFreqs (x:xs)
+                                        | nextFreq `elem` prevFreqs = nextFreq
+                                        | otherwise = findFirstRepeating nextFreq (prevFreqs ++ [nextFreq]) xs
+                                        where nextFreq = frequency + x
 
-findFirstRepeating frequency (y:ys) (x:xs)
-                                            | (frequency + x) `elem` y:ys = (frequency + x)
-                                            | otherwise = findFirstRepeating (frequency + x) ((frequency + x) : y : ys) xs
+findFirstRepeating frequency prevFreqs [] = error "exhausted shifts"
 
 removePlus input = if input !! 0 == '+'
                         then tail input
