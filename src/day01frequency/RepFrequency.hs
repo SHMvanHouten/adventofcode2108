@@ -1,4 +1,4 @@
-
+--import Data.Set todo: find this somewhere cabal/hackage
 -- works but super slow
 -- real	2m17.641s
 main = do
@@ -6,7 +6,7 @@ main = do
         let list = words contents
         let frequencyShifts = map parseInt (map removePlus list)
 
-        print (findFirstRepeating 0 [] (cycle frequencyShifts))
+        print (findFirstRepeating 0 Set (cycle frequencyShifts))
 
 findFirstRepeating :: Int -> [Int] -> [Int] -> Int
 
