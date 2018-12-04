@@ -4,7 +4,7 @@ import Data.Set
 
 main = do
         contents <- readFile "input.txt"
-        let claims = Prelude.map (toClaim) (splitOn "\n" contents)
+        let claims = Prelude.map (toClaim) (lines contents)
         let claimedCoordinates = concat (Prelude.map (getCoordinatesForClaim) claims)
         let coordinateByAmountUsed = fromListWith (+) (Prelude.map (toPairWithAmount) claimedCoordinates)
         let singleUseCoordinates = keys (Data.Map.filter (==1) coordinateByAmountUsed)
