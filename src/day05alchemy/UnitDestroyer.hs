@@ -2,14 +2,13 @@ import Data.Map
 import Data.Char
 import Data.List
 
--- 8m49.322s
+-- 0m28.920s
 main = do
   contents <- readFile "inputDay5.txt"
   let stableResult = reactToStableResult contents
   print (Data.Map.size stableResult)
-  print (elems stableResult)
 
-  print (findQuickestResult contents)
+  print (findQuickestResult (elems stableResult))
 
 findQuickestResult contents = do
   let charToPolymerSize = getPolymerSizesForPolymersWithoutChar contents
@@ -22,6 +21,7 @@ reactWithoutChar :: Char -> String -> (Char, Int)
 reactWithoutChar char polymer = do
    let filteredPolymer = Data.List.filter (/= (toUpper char)) (Data.List.filter (/= char) polymer)
    (char, Data.Map.size (reactToStableResult filteredPolymer))
+
 -----------------
 --REACTIONS
 -----------------
