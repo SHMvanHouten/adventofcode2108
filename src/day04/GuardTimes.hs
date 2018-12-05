@@ -19,8 +19,16 @@ main = do
         print (sleepyGuardId * (fst(last sortedByLongestSlept)))
         ------
 
-        let guardByLongestSleptMinute = Prelude.map (\g -> (getMostSleptMinuteAmount g, g)) (elems guards)
-        let guardsByLongestSleptMinuteSorted = sortOn (fst)
+        let guardByLongestSleptMinute = Prelude.map getMostSleptMinuteAmount (elems guards)
+        print guardByLongestSleptMinute
+        let guardsByLongestSleptMinuteSorted = sortOn (fst) guardByLongestSleptMinute
+        let mostConsistentGuard = snd (last guardsByLongestSleptMinuteSorted)
+        print mostConsistentGuard
+
+        let sortedByLongestSlept2 = sortOn snd (toList (sleepMinutesToAmount mostConsistentGuard))
+        let mostConsistentGuardId = iden mostConsistentGuard
+        print "Guard id of most consistent guard * longest slept minute:"
+        print (mostConsistentGuardId * (fst(last sortedByLongestSlept2)))
         print "hi"
 
 ---------
@@ -29,10 +37,13 @@ main = do
 getTotalTimeSlept:: Guard -> Int
 getTotalTimeSlept guard = sum (elems (sleepMinutesToAmount guard))
 
-getMostSleptMinuteAmount :: Guard -> Int
 --todo: how to maximumby
-getMostSleptMinuteAmount guard = snd (last (sortOn (snd) (toList (sleepMinutesToAmount guard))))
-
+getMostSleptMinuteAmount :: Guard -> (Int, Guard)
+getMostSleptMinuteAmount = [ (last (sort (elems (sleepMinutesToAmount guard)))) | guard <- guards, ((sleepMinutesToAmount guard) > 0)]
+--getMostSleptMinuteAmount guard
+--      | (size sleepMinsToAmt) > 0 = ((last (sort (elems sleepMinsToAmt)), guard)
+--      | otherwise = (0, guard)
+--      where sleepMinsToAmt = sleepMinutesToAmount guard
 ----------
 ----Guards
 ----------
