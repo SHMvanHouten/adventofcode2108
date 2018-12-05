@@ -39,7 +39,7 @@ getMostSleptMinuteAmount :: [Int] -> Int
 getMostSleptMinuteAmount sleepTimes = last (Data.List.sort sleepTimes)
 
 buildGuardTuple :: Guard -> (Int, Guard)
-buildGuardTuple guard = (getMostSleptMinuteAmount (elems (Data.Map.filter (>0) (sleepMinutesToAmount guard))), guard)
+buildGuardTuple guard = (getMostSleptMinuteAmount (elems (sleepMinutesToAmount guard)), guard)
 
 hasSlept :: Guard -> Bool
 hasSlept guard = (Data.Map.size (sleepMinutesToAmount guard)) > 0

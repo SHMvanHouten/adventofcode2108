@@ -9,8 +9,6 @@ main = do
 
 findFirstRepeating :: Int -> Set Int -> [Int] -> Int
 
---findFirstRepeating frequency [] (x:xs) = findFirstRepeating (frequency + x) () xs
-
 findFirstRepeating frequency prevFreqs (x:xs)
                                         | nextFreq `Data.Set.member` prevFreqs = nextFreq
                                         | otherwise = findFirstRepeating nextFreq (Data.Set.insert (frequency + x) prevFreqs) xs
@@ -23,7 +21,3 @@ removePlus input = if input !! 0 == '+'
                         else input
 
 parseInt str = read str :: Int
-
---sum :: (Num a) => [a] -> a
---sum _ = 0
---sum (x:xs) = x + sum xs
