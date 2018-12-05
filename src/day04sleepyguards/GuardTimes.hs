@@ -15,21 +15,18 @@ main = do
         let sleepyGuard = fst (last sortedGuards)
         let sleepyGuardId = iden sleepyGuard
         let sortedByLongestSlept = sortOn snd (toList (sleepMinutesToAmount sleepyGuard))
-        print "Guard id of laziest guard * longest slept minute"
+        print "Guard id of laziest guard * longest slept minute:"
         print (sleepyGuardId * (fst(last sortedByLongestSlept)))
         ------
 
-        let guardByLongestSleptMinute = Prelude.map getMostSleptMinuteAmount (elems guards)
-        print guardByLongestSleptMinute
+        let guardByLongestSleptMinute = Prelude.map buildGuardTuple (elems (Data.Map.filter (hasSlept) guards))
         let guardsByLongestSleptMinuteSorted = sortOn (fst) guardByLongestSleptMinute
         let mostConsistentGuard = snd (last guardsByLongestSleptMinuteSorted)
-        print mostConsistentGuard
 
         let sortedByLongestSlept2 = sortOn snd (toList (sleepMinutesToAmount mostConsistentGuard))
         let mostConsistentGuardId = iden mostConsistentGuard
         print "Guard id of most consistent guard * longest slept minute:"
         print (mostConsistentGuardId * (fst(last sortedByLongestSlept2)))
-        print "hi"
 
 ---------
 ----Guard stats
@@ -38,12 +35,15 @@ getTotalTimeSlept:: Guard -> Int
 getTotalTimeSlept guard = sum (elems (sleepMinutesToAmount guard))
 
 --todo: how to maximumby
-getMostSleptMinuteAmount :: Guard -> (Int, Guard)
-getMostSleptMinuteAmount = [ (last (sort (elems (sleepMinutesToAmount guard)))) | guard <- guards, ((sleepMinutesToAmount guard) > 0)]
---getMostSleptMinuteAmount guard
---      | (size sleepMinsToAmt) > 0 = ((last (sort (elems sleepMinsToAmt)), guard)
---      | otherwise = (0, guard)
---      where sleepMinsToAmt = sleepMinutesToAmount guard
+getMostSleptMinuteAmount :: [Int] -> Int
+getMostSleptMinuteAmount sleepTimes = last (Data.List.sort sleepTimes)
+
+buildGuardTuple :: Guard -> (Int, Guard)
+buildGuardTuple guard = (getMostSleptMinuteAmount (elems (Data.Map.filter (>0) (sleepMinutesToAmount guard))), guard)
+
+hasSlept :: Guard -> Bool
+hasSlept guard = (Data.Map.size (sleepMinutesToAmount guard)) > 0
+
 ----------
 ----Guards
 ----------
