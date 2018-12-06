@@ -1,0 +1,2 @@
+module Day06DangerAreas.LeastDangerousArea where
+
