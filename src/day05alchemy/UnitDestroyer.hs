@@ -26,7 +26,7 @@ reactWithoutChar char polymer = do
 --REACTIONS
 -----------------
 reactToStableResult polymer = do
-  let idsWithUnits = reverse (ideify polymer [])
+  let idsWithUnits = zip [0..] polymer
   causeChainReaction idsWithUnits (fromList idsWithUnits)
 
 causeChainReaction :: [(Int, Char)] -> Map Int Char -> Map Int Char
@@ -42,11 +42,6 @@ react :: Int -> Int -> Map Int Char -> Map Int Char
 react x y units = do
   let remainingUnits = (Data.Map.delete x (Data.Map.delete y units))
   causeChainReaction (toList remainingUnits) remainingUnits
-
-ideify :: String -> [(Int, Char)] -> [(Int, Char)]
-ideify (x:xs) [] = ideify xs [(0, x)]
-ideify [x] idedChars = ((fst (head idedChars) + 1), x) : idedChars
-ideify (x:xs) idedChars = ideify xs (((fst (head idedChars) + 1), x): idedChars)
 
 shouldReact :: Char -> Char -> Bool
 shouldReact x y = abs ((ord x) - (ord y)) == 32

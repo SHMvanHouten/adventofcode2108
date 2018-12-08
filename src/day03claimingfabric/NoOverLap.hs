@@ -6,7 +6,7 @@ main = do
         contents <- readFile "input.txt"
         let claims = Prelude.map (toClaim) (lines contents)
         let claimedCoordinates = concat (Prelude.map (getCoordinatesForClaim) claims)
-        let coordinateByAmountUsed = fromListWith (+) (Prelude.map (toPairWithAmount) claimedCoordinates)
+        let coordinateByAmountUsed = fromListWith (+) (zip claimedCoordinates [1,1..])
         let singleUseCoordinates = keys (Data.Map.filter (==1) coordinateByAmountUsed)
         let matcher = allCoordsMatch (Data.Set.fromList singleUseCoordinates)
         let theOneClaim = Prelude.filter(matcher) claims
@@ -21,9 +21,6 @@ allMatch [x] singleUseCoordinates = x `Data.Set.member` singleUseCoordinates
 allMatch (x:xs) singleUseCoordinates
                                   | x `Data.Set.member` singleUseCoordinates = allMatch xs singleUseCoordinates
                                   | otherwise = False
-
-toPairWithAmount :: Coordinate -> (Coordinate, Int)
-toPairWithAmount c = (c, 1)
 
 getCoordinatesForClaim :: Claim -> [Coordinate]
 getCoordinatesForClaim claim = concat [allCoordinatesOnXAxis (x (coordinate claim)) y (width claim)| y <- (getYRange claim)]

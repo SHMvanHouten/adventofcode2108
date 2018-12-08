@@ -8,7 +8,7 @@ main = do
         let trips = countTriples charCountList
         print (doubles * trips)
 
-getCharCountsPerWord str = Prelude.map (snd) (toList (fromListWith (+) [(c, 1) | c <- str]))
+getCharCountsPerWord str = Prelude.map (snd) (toList (fromListWith (+) (zip str [1,1..])))
 
 countDoubles charcountsList = countWordsWithCharOccurrence charcountsList 2
 
