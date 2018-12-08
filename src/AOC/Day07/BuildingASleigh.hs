@@ -3,10 +3,27 @@ module AOC.Day07.BuildingASleigh where
 import qualified Data.Map as Map
 import Data.List
 
+----------------------
+-- PART 2
+----------------------
+
+timeTheSleighBuild :: String -> Int -> Int
+timeTheSleighBuild rawInstructions baseStepBuildTime = do
+  let lookupTable = buildLookupTableFromRawInstructions rawInstructions
+  calculateTimeToExecuteTheBuild lookupTable baseStepBuildTime
+
+calculateTimeToExecuteTheBuild :: StepLookupTable -> Int -> Int
+calculateTimeToExecuteTheBuild lookupTable baseBuildTime = do
+  15
+
+
+----------------------
+-- PART 1
+----------------------
+
 getInstructionOrder :: String -> String
 getInstructionOrder rawInstructions = do
-  let instructions = rawInstructionsToInstructions rawInstructions
-  let lookupTable = toStepLookupTable instructions Map.empty
+  let lookupTable = buildLookupTableFromRawInstructions rawInstructions
   getStepOrderFromLookupTable lookupTable (getFirstAvailableSteps lookupTable) []
 
 getStepOrderFromLookupTable :: StepLookupTable -> [Step] -> String -> String
@@ -25,6 +42,15 @@ isNotDependentOnUnclaimedStep stepOrder claimedSteps = Data.List.all (\c -> c `e
 
 getFirstAvailableSteps :: StepLookupTable -> [Step]
 getFirstAvailableSteps toStepLookupTable = map (step) (Map.elems (Map.filter (\so -> (length (befores so)) == 0) toStepLookupTable))
+
+----------------------
+-- Build step lookup table
+----------------------
+
+buildLookupTableFromRawInstructions :: String -> StepLookupTable
+buildLookupTableFromRawInstructions rawInstructions = do
+  let instructions = rawInstructionsToInstructions rawInstructions
+  toStepLookupTable instructions Map.empty
 
 toStepLookupTable :: [Instruction] -> StepLookupTable -> StepLookupTable
 toStepLookupTable [x] stepLookupTable = addAfterRelation x (addBeforeRelation x stepLookupTable)

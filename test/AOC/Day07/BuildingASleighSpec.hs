@@ -13,8 +13,20 @@ main = hspec spec
 
 spec :: Spec
 spec = do
+  ----------------------
+  -- PART 2
+  ----------------------
+
+  describe "doing the test input should take 15 seconds" $ do
+    it "should take 15 seconds" $ do
+      timeTheSleighBuild testInput 0 `shouldBe` 15
+
+
+  -------------------------------
+  -- PART 1
+  -------------------------------
   describe "it should order the steps after the instructions" $ do
-    it "order test input steps" $ do
+    it "should solve the part 1 test input" $ do
       getInstructionOrder testInput `shouldBe` "CABDFE"
 
   describe "parse raw file" $ do
