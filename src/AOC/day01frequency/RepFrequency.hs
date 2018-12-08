@@ -1,3 +1,4 @@
+module RepFrequency where
 import Data.Set
 
 main = do
