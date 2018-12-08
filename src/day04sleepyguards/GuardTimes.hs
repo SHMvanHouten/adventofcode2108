@@ -70,21 +70,16 @@ updateGuards sleepPeriods iden guards
     | otherwise = Data.Map.insert iden (toGuard sleepPeriods iden) guards
 
 updateGuard::Guard -> [SleepPeriod] -> Int -> Guard
-updateGuard guard sleepPeriods iden = Guard iden (unionWith (+) (sleepMinutesToAmount guard) (fromListWith (+) (flatSleepPeriodsToMinutePairs sleepPeriods [])))
+updateGuard guard sleepPeriods iden = Guard iden (unionWith (+) (sleepMinutesToAmount guard) (fromListWith (+) (concatMap (buildMinutePairs) sleepPeriods)))
 
 toGuard :: [SleepPeriod] -> Int -> Guard
-toGuard sleepPeriods iden = Guard iden (fromListWith (+) (flatSleepPeriodsToMinutePairs sleepPeriods []))
+toGuard sleepPeriods iden = Guard iden (fromListWith (+) (concatMap (buildMinutePairs) sleepPeriods))
 
 toSleepTime::Record -> SleepPeriod
 toSleepTime sleepRecord = SleepPeriod (minute (timeOfDay sleepRecord)) 0
 
 updateSleepPeriods :: [SleepPeriod] -> Record -> [SleepPeriod]
 updateSleepPeriods (x:xs) wakeRecord = (SleepPeriod (sleepMin x) (minute (timeOfDay wakeRecord))) : xs
-
-flatSleepPeriodsToMinutePairs :: [SleepPeriod] -> [(Int, Int)] -> [(Int, Int)]
-flatSleepPeriodsToMinutePairs [] minutePairs = minutePairs
-flatSleepPeriodsToMinutePairs [x] minutePairs = minutePairs ++ (buildMinutePairs x )
-flatSleepPeriodsToMinutePairs (x:xs) minutePairs = flatSleepPeriodsToMinutePairs xs (minutePairs ++ (buildMinutePairs x ))
 
 buildMinutePairs:: SleepPeriod -> [(Int, Int)]
 buildMinutePairs period = [(x,1) | x <- [(sleepMin period)..((wakeMin period) - 1)]]
