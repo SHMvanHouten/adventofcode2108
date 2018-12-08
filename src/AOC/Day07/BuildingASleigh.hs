@@ -14,15 +14,14 @@ getStepOrderFromLookupTable _ [] ordersResult = ordersResult
 getStepOrderFromLookupTable stepLookupTable availableSteps orderSoFar = do
   let sortedSteps = sort availableSteps
   let nextStep = head sortedSteps
-  let restOfSteps = tail sortedSteps
-  let newAfters = afters (stepLookupTable Map.! nextStep) \\ concatMap (afters) (getStepOrdersFor restOfSteps stepLookupTable [])
-  let newAvailableSteps = nub ((newAfters ++ restOfSteps ) \\ orderSoFar)
   let newOrder = orderSoFar ++ [nextStep]
+  let restOfSteps = tail sortedSteps
+  let newAfters = filter (\x -> isNotDependentOnUnclaimedStep (stepLookupTable Map.! x) newOrder) (afters (stepLookupTable Map.! nextStep))
+  let newAvailableSteps = nub ((newAfters ++ restOfSteps ) \\ orderSoFar)
   getStepOrderFromLookupTable stepLookupTable newAvailableSteps newOrder
 
-getStepOrdersFor :: [Step] -> StepLookupTable -> [StepOrder] -> [StepOrder]
-getStepOrdersFor [] _ results = results
-getStepOrdersFor (x:xs) stepLookupTable results = (stepLookupTable Map.! x) : results
+isNotDependentOnUnclaimedStep :: StepOrder -> String -> Bool
+isNotDependentOnUnclaimedStep stepOrder claimedSteps = Data.List.all (\c -> c `elem` claimedSteps) (befores stepOrder)
 
 getFirstAvailableSteps :: StepLookupTable -> [Step]
 getFirstAvailableSteps toStepLookupTable = map (step) (Map.elems (Map.filter (\so -> (length (befores so)) == 0) toStepLookupTable))

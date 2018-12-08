@@ -36,6 +36,11 @@ spec = do
       let lookupTable = toStepLookupTable (rawInstructionsToInstructions testInput) Map.empty
       getFirstAvailableSteps lookupTable `shouldBe` "C"
 
+  describe "is not dependent on unclaimed step" $ do
+    it "should say A is not dependent on an unclaimed step" $ do
+      let stepOrder = StepOrder 'A' ['C'] []
+      isNotDependentOnUnclaimedStep stepOrder "CJB" `shouldBe` True
+
 loadFile :: IO String
 loadFile = do
   readFile "inputday7.txt"
