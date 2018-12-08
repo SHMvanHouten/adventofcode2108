@@ -1,3 +1,5 @@
+module AOC.Day06DangerAreas.LeastDangerousArea where
+
 import Data.List
 import Data.Maybe
 import Data.Map
