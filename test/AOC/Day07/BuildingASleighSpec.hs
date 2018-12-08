@@ -4,6 +4,7 @@ import Test.Hspec
 import Test.QuickCheck
 
 import AOC.Day07.BuildingASleigh
+import qualified Data.Map as Map
 
 -- `main` is here so that this module can be run from GHCi on its own.  It is
 -- not needed for automatic spec discovery.
@@ -15,12 +16,34 @@ spec = do
   describe "it should order the steps after the instructions" $ do
     it "order test input steps" $ do
       getInstructionOrder testInput `shouldBe` "CABDFE"
+
   describe "parse raw file" $ do
     it "it should parse the instructions" $ do
-      rawInstructionsToInstructions testInput `shouldContain` [Instructions 'C' 'A']
+      rawInstructionsToInstructions testInput `shouldContain` [Instruction 'C' 'A']
+
+  describe "build lookup table" $ do
+    it "should make a lookup table showing dependencies of the steps" $ do
+      let input = [Instruction 'A' 'B']
+      (StepOrder 'B' ['A'] []) `shouldBe` ((toStepLookupTable input Map.empty)Map.!'B')
+
+  describe "A and F should be afters of C" $ do
+    it "should make a lookup table where C is a before of A, while B and D are afters" $ do
+      let lookupTable = toStepLookupTable (rawInstructionsToInstructions testInput) Map.empty
+      (StepOrder 'A' ['C'] ['D', 'B']) `shouldBe` lookupTable Map.! 'A'
+
+  describe "get first available step" $ do
+    it "should identify C as the first available step" $ do
+      let lookupTable = toStepLookupTable (rawInstructionsToInstructions testInput) Map.empty
+      getFirstAvailableSteps lookupTable `shouldBe` "C"
 
 loadFile :: IO String
 loadFile = do
   readFile "inputday7.txt"
 
-testInput = "Step C must be finished before step A can begin.\nStep C must be finished before step F can begin.\nStep A must be finished before step B can begin.\nStep A must be finished before step D can begin.\nStep B must be finished before step E can begin.\nStep D must be finished before step E can begin.\nStep F must be finished before step E can begin."
+testInput = "Step C must be finished before step A can begin.\n" ++
+  "Step C must be finished before step F can begin.\n" ++
+  "Step A must be finished before step B can begin.\n" ++
+  "Step A must be finished before step D can begin.\n" ++
+  "Step B must be finished before step E can begin.\n" ++
+  "Step D must be finished before step E can begin.\n" ++
+  "Step F must be finished before step E can begin."
