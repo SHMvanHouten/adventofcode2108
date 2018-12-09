@@ -10,7 +10,7 @@ getWinningElfScore players lastMarble = do
   let resultingPlayers = getPlayerListAfterGame players lastMarble
   maximum (Traversable.fmapDefault (score) resultingPlayers)
 
-getPlayerListAfterGame players lastMarble = startGame [0..lastMarble] (fromJust $ fromList (map (toPlayer) [1..players]))
+getPlayerListAfterGame players lastMarble = startGame [0..lastMarble] (fromList' $ map (toPlayer) [1..players])
 
 startGame (x:xs) players = playMarbles xs (next players) (singleton x)
 
