@@ -12,9 +12,17 @@ main = hspec spec
 
 spec :: Spec
 spec = do
+  describe "getSumOfAllMetaDataEntries" $ do
+    it "should sum all the metadata of all the found nodes" $ do
+      getSumOfAllMetaDataEntries testInput `shouldBe`138
+
   describe "parseNodes" $ do
-    it "it should parse the raw input to nodes" $ do
-      parseNodes testInput `shouldBe` [(Node 'A' 2 [1,1,2]), (Node 'B' 0 [10,11,12]), (Node 'C' 1 [2]), (Node 'D' 0 [99])]
+    it "should parse the raw input to nodes" $ do
+      let nodeB = Node 'B' [] [10,11,12]
+      let nodeD = Node 'D' [] [99]
+      let nodeC = Node 'C' [nodeD] [2]
+      let nodeA = Node 'A' [nodeB, nodeC] [1,1,2]
+      parseNodes testInput `shouldBe` [nodeA, nodeB, nodeC, nodeD]
 
 
 testInput = "2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2"
