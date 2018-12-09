@@ -25,7 +25,7 @@ playMarbles (x:xs) players board
       let updatedPlayers = replacePlayer players (Player (nr currentPlayer) updatedPlayerScore)
       playMarbles xs (next updatedPlayers) updatedBoard
   | otherwise = do
-    let updatedBoard = insert x $ twoStepsForward board
+    let updatedBoard = insert x $ next board
     playMarbles xs (next players) (updatedBoard)
 
 data Player = Player {
@@ -42,7 +42,5 @@ moveBackN :: Int -> PointedList a -> PointedList a
 moveBackN n circularList
   | n == 0 = circularList
   | otherwise = moveBackN (n - 1) (previous circularList)
-
-twoStepsForward circularList = next (next circularList)
 
 fromList' cList= fromJust $ fromList cList

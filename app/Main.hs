@@ -6,7 +6,7 @@ import AOC.Day09.MarbleGame
 
 main :: IO ()
 main = do
-  print (getPlayerListAfterGame 9 25)
+  print (getWinningElfScore 476 7143100)
 --  contents <- readFile "/Users/SHMvanHouten/Projects/Haskell/adventofcode2018/src/AOC/Day07/inputday7.txt"
 --  print (getInstructionOrder contents)
 --  print (timeTheSleighBuild contents 60 5)
