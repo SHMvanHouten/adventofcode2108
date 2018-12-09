@@ -13,14 +13,6 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  ----------------------
-  -- PART 2
-  ----------------------
-
-  describe "doing the test input should take 15 seconds" $ do
-    it "should take 15 seconds" $ do
-      timeTheSleighBuild testInput 0 `shouldBe` 15
-
 
   -------------------------------
   -- PART 1
@@ -51,11 +43,7 @@ spec = do
   describe "is not dependent on unclaimed step" $ do
     it "should say A is not dependent on an unclaimed step" $ do
       let stepOrder = StepOrder 'A' ['C'] []
-      isNotDependentOnUnclaimedStep stepOrder "CJB" `shouldBe` True
-
-loadFile :: IO String
-loadFile = do
-  readFile "inputday7.txt"
+      isNotDependentOnUnfinishedStep stepOrder "CJB" `shouldBe` True
 
 testInput = "Step C must be finished before step A can begin.\n" ++
   "Step C must be finished before step F can begin.\n" ++

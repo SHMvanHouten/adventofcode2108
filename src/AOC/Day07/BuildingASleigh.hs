@@ -2,21 +2,55 @@ module AOC.Day07.BuildingASleigh where
 
 import qualified Data.Map as Map
 import Data.List
+import Data.Char
 
 ----------------------
 -- PART 2
 ----------------------
+allsteps = ['A'..'Z']
 
-timeTheSleighBuild :: String -> Int -> Int
-timeTheSleighBuild rawInstructions baseStepBuildTime = do
+timeTheSleighBuild :: String -> Int -> Int -> (Int, [Step])
+timeTheSleighBuild rawInstructions baseStepBuildTime availableWorkers = do
   let lookupTable = buildLookupTableFromRawInstructions rawInstructions
-  calculateTimeToExecuteTheBuild lookupTable baseStepBuildTime
+  calculateTimeToExecuteTheBuild lookupTable baseStepBuildTime (getFirstAvailableSteps lookupTable) availableWorkers
 
-calculateTimeToExecuteTheBuild :: StepLookupTable -> Int -> Int
-calculateTimeToExecuteTheBuild lookupTable baseBuildTime = do
-  15
+calculateTimeToExecuteTheBuild :: StepLookupTable -> Int -> [Step] -> Int -> (Int, [Step])
+calculateTimeToExecuteTheBuild lookupTable baseBuildTime availableSteps availableWorkers = do
+  let assignedSteps = assignWorkers (take availableWorkers (sort availableSteps)) baseBuildTime
+  tickSeconds lookupTable assignedSteps availableWorkers 0 [] baseBuildTime
 
+tickSeconds :: StepLookupTable -> [StepBuild] -> Int -> Int -> [Step] -> Int -> (Int, [Step])
+tickSeconds _ [] _ secondsTicked finishedSteps _ = (secondsTicked, finishedSteps)
+tickSeconds lookupTable assignedSteps availableWorkers secondsTicked finishedSteps baseBuildTime = do
+  let finishedToUnfinishedSteps = partition (\x -> secondsLeft x == 0) (map (tickSecond) assignedSteps)
+  let newFinishedSteps = finishedSteps ++ (map (currentStep) (fst finishedToUnfinishedSteps))
+  let unfinishedSteps = snd finishedToUnfinishedSteps
+  let newAvailableSteps = findAvailableSteps newFinishedSteps lookupTable (map (currentStep) unfinishedSteps)
+  let newAssignedSteps = assignWorkersToNewSteps unfinishedSteps availableWorkers newAvailableSteps baseBuildTime
+  tickSeconds lookupTable newAssignedSteps availableWorkers (secondsTicked + 1) newFinishedSteps baseBuildTime
 
+assignWorkersToNewSteps :: [StepBuild] -> Int -> [Step] -> Int -> [StepBuild]
+assignWorkersToNewSteps unfinishedSteps totalWorkersAvailable availableSteps baseBuildTime = do
+  let availableWorkers = totalWorkersAvailable - (length unfinishedSteps)
+  unfinishedSteps ++ (assignWorkers (take availableWorkers availableSteps) baseBuildTime)
+
+findAvailableSteps :: [Step] -> StepLookupTable -> [Step] -> [Step]
+findAvailableSteps finishedSteps stepLookupTable unfinishedSteps = sort ((filter (\x -> isNotDependentOnUnfinishedStep (stepLookupTable Map.! x) finishedSteps) allsteps) \\ (finishedSteps ++ unfinishedSteps))
+
+tickSecond stepBuild = StepBuild (currentStep stepBuild) (secondsLeft stepBuild - 1)
+
+assignWorkers :: [Step] -> Int ->  [StepBuild]
+assignWorkers steps baseBuildTime = map (\x -> toStepBuild x baseBuildTime) steps
+
+toStepBuild :: Step -> Int -> StepBuild
+toStepBuild step baseBuildTime = StepBuild step (getBuildTime step baseBuildTime)
+
+getBuildTime step baseBuildTime = baseBuildTime + (ord step) - (ord 'A') + 1
+
+data StepBuild = StepBuild {
+  currentStep :: Step,
+  secondsLeft :: Int
+} deriving (Show, Eq)
 ----------------------
 -- PART 1
 ----------------------
@@ -33,12 +67,12 @@ getStepOrderFromLookupTable stepLookupTable availableSteps orderSoFar = do
   let nextStep = head sortedSteps
   let newOrder = orderSoFar ++ [nextStep]
   let restOfSteps = tail sortedSteps
-  let newAfters = filter (\x -> isNotDependentOnUnclaimedStep (stepLookupTable Map.! x) newOrder) (afters (stepLookupTable Map.! nextStep))
+  let newAfters = filter (\x -> isNotDependentOnUnfinishedStep (stepLookupTable Map.! x) newOrder) (afters (stepLookupTable Map.! nextStep))
   let newAvailableSteps = nub ((newAfters ++ restOfSteps ) \\ orderSoFar)
   getStepOrderFromLookupTable stepLookupTable newAvailableSteps newOrder
 
-isNotDependentOnUnclaimedStep :: StepOrder -> String -> Bool
-isNotDependentOnUnclaimedStep stepOrder claimedSteps = Data.List.all (\c -> c `elem` claimedSteps) (befores stepOrder)
+isNotDependentOnUnfinishedStep :: StepOrder -> String -> Bool
+isNotDependentOnUnfinishedStep stepOrder finishedSteps = Data.List.all (\c -> c `elem` finishedSteps) (befores stepOrder)
 
 getFirstAvailableSteps :: StepLookupTable -> [Step]
 getFirstAvailableSteps toStepLookupTable = map (step) (Map.elems (Map.filter (\so -> (length (befores so)) == 0) toStepLookupTable))
