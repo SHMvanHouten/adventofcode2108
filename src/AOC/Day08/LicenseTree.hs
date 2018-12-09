@@ -20,7 +20,6 @@ getValueOfRelevantChildNodes childNodes metaData = do
   let metaDataRefToValues = Map.fromList (map (\x -> (x, getValueOfNode (childNodes!!(x - 1)))) (nub metaDataThatReferenceChildNodes))
   sum (map (\x -> metaDataRefToValues Map.!x) metaDataThatReferenceChildNodes)
 
-
 correspondsToChildNode :: Int -> [Node] -> Bool
 -- we start counting at 1 (#offByOne)
 correspondsToChildNode metaDataNr nodes = (metaDataNr <= (length nodes)) && metaDataNr > 0

@@ -18,7 +18,8 @@ library
   exposed-modules:     AOC.Day06DangerAreas.LeastDangerousArea
                      , AOC.Day07.BuildingASleigh
                      , AOC.Day08.LicenseTree
-  build-depends:       base >= 4.7 && < 5, containers, split
+                     , AOC.Day09.MarbleGame
+  build-depends:       base >= 4.7 && < 5, containers, split, pointedlist
   default-language:    Haskell2010
 
 executable adventofcode2018
