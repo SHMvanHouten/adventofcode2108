@@ -10,6 +10,4 @@ main = do
 --  print (timeTheSleighBuild contents 60 5)
   contents <- readFile "/Users/SHMvanHouten/Projects/Haskell/adventofcode2018/resources/input-day8.txt"
   print (getSumOfAllMetaDataEntries contents)
-
-
-
+  print (getValueOfRootNode contents)

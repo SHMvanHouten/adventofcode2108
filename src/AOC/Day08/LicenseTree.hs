@@ -2,7 +2,31 @@ module AOC.Day08.LicenseTree where
 
 import Data.List
 import Data.Char
+import qualified Data.Map as Map
 
+getValueOfRootNode rawInput = do
+  let input = map (parseInt) (words rawInput)
+  let rootNode = getRootNode input
+  getValueOfNode rootNode
+
+getValueOfNode :: Node -> Int
+getValueOfNode node
+  | length (childNodes node) == 0 = sum (metaData node)
+  | otherwise = getValueOfRelevantChildNodes (childNodes node) (metaData node)
+
+getValueOfRelevantChildNodes :: [Node] -> [Int] -> Int
+getValueOfRelevantChildNodes childNodes metaData = do
+  let metaDataThatReferenceChildNodes = filter (\x -> correspondsToChildNode x childNodes) metaData
+  let metaDataRefToValues = Map.fromList (map (\x -> (x, getValueOfNode (childNodes!!(x - 1)))) (nub metaDataThatReferenceChildNodes))
+  sum (map (\x -> metaDataRefToValues Map.!x) metaDataThatReferenceChildNodes)
+
+
+correspondsToChildNode :: Int -> [Node] -> Bool
+-- we start counting at 1 (#offByOne)
+correspondsToChildNode metaDataNr nodes = (metaDataNr <= (length nodes)) && metaDataNr > 0
+----------
+-- part 2
+----------
 getSumOfAllMetaDataEntries rawInput = do
   let nodes = parseNodes rawInput
   sum (concatMap (metaData) nodes)
