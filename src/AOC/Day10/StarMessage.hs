@@ -1,9 +1,45 @@
 module AOC.Day10.StarMessage where
 
 import Data.List.Split
+import qualified Data.Set as Set
+import qualified Data.List as List
 
--- print points: assert all points are within desired range, then draw line for line
--- draw points: foreach coordinate x y , if starlist contains it: X, otherwise .
+-- 10515
+
+tickNTimes :: [Star] -> Int -> [Star]
+tickNTimes stars n
+  | n == 0 = stars
+  | otherwise = tickNTimes (tick stars) (n - 1)
+
+moveStarsUntilMinimumWidth :: [Star] -> Int -> Int -> [Star] -> ([Star], Int)
+moveStarsUntilMinimumWidth stars i prevWidth prevStars
+  | currentWidth > prevWidth = (stars, i)
+  | otherwise = moveStarsUntilMinimumWidth (tick stars) (i + 1) currentWidth stars
+  where currentWidth = getWidth stars
+
+getWidth stars = do
+  let allXs = List.sort $ map (x') $ map (coordinate) stars
+  length [(head allXs)..(last allXs)]
+
+tick :: [Star] -> [Star]
+tick stars = map (moveStarOneTick) stars
+
+moveStarOneTick star = do
+  let newX = (getX star) + (getXVelocity star)
+  let newY = (getY star) + (getYVelocity star)
+  Star (Coordinate newX newY) (velocity star)
+
+drawSky :: [Star] -> String
+drawSky stars = do
+  let starLocation = Set.fromList $ map (coordinate) stars
+  concat $ List.intersperse "," $ map (\y -> printLine y starLocation [0..400]) [0..400]
+
+printLine :: Int -> Set.Set Coordinate -> [Int] -> String
+printLine y starLocations xRange = map (\x -> starOrVoid x y starLocations) xRange
+
+starOrVoid x y starLocations
+  | (Coordinate x y) `Set.member` starLocations = 'X'
+  | otherwise = '.'
 
 parseStars :: String -> [Star]
 parseStars rawInput = map parseStar $ lines rawInput
