@@ -15,11 +15,13 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     AOC.Day06DangerAreas.LeastDangerousArea
+  exposed-modules:     AOC.Util.Coordinate
+                     , AOC.Day06DangerAreas.LeastDangerousArea
                      , AOC.Day07.BuildingASleigh
                      , AOC.Day08.LicenseTree
                      , AOC.Day09.MarbleGame
                      , AOC.Day10.StarMessage
+                     , AOC.Day11.PowerGrid
   build-depends:       base >= 4.7 && < 5, containers, split, pointedlist
   default-language:    Haskell2010
 
@@ -42,6 +44,7 @@ test-suite adventofcode2018-test
                      , AOC.Day08.LicenseTreeSpec
                      , AOC.Day09.MarbleGameSpec
                      , AOC.Day10.StarMessageSpec
+                     , AOC.Day11.PowerGridSpec
   build-depends:       base
                      , adventofcode2018
                      , hspec
