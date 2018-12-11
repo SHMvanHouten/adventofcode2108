@@ -13,13 +13,11 @@ tickNTimes stars n
 
 moveStarsUntilMinimumWidth :: [Star] -> Int -> Int -> [Star] -> ([Star], Int)
 moveStarsUntilMinimumWidth stars i prevWidth prevStars
-  | currentWidth > prevWidth = (stars, i)
+  | currentWidth > prevWidth = (prevStars, i)
   | otherwise = moveStarsUntilMinimumWidth (tick stars) (i + 1) currentWidth stars
   where currentWidth = getWidth stars
 
-getWidth stars = do
-  let allXs = List.sort $ map (x') $ map (coordinate) stars
-  length [(head allXs)..(last allXs)]
+getWidth stars = length $ getXRange stars
 
 tick :: [Star] -> [Star]
 tick stars = map (moveStarOneTick) stars
@@ -32,7 +30,7 @@ moveStarOneTick star = do
 drawSky :: [Star] -> String
 drawSky stars = do
   let starLocation = Set.fromList $ map (coordinate) stars
-  concat $ List.intersperse "," $ map (\y -> printLine y starLocation [0..400]) [0..400]
+  concat $ List.intersperse "," $ map (\y -> printLine y starLocation (getXRange stars)) (getYRange stars)
 
 printLine :: Int -> Set.Set Coordinate -> [Int] -> String
 printLine y starLocations xRange = map (\x -> starOrVoid x y starLocations) xRange
@@ -88,5 +86,13 @@ getX star = x' $ coordinate star
 getY star = y' $ coordinate star
 getXVelocity star = xv $ velocity star
 getYVelocity star = yv $ velocity star
+
+getXRange stars = do
+  let allXs = List.sort $ map (x') $ map (coordinate) stars
+  [(head allXs)..(last allXs)]
+
+getYRange stars = do
+  let allYs = List.sort $ map (y') $ map (coordinate) stars
+  [(head allYs)..(last allYs)]
 
 parseInt str = read str :: Int
