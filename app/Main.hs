@@ -8,10 +8,5 @@ import AOC.Day11.PowerGrid
 
 main :: IO ()
 main = do
---  contents <- readFile "/Users/SHMvanHouten/Projects/Haskell/adventofcode2018/resources/input-day10.txt"
---  let stars = parseStars contents
---  let starsToIters = moveStarsUntilMinimumWidth stars 0 1000000 []
---  print (snd starsToIters)
---  print (drawSky $ fst starsToIters)
-  print $ findTopLeftOfHighestPowerSquare 4842
+  print $ findTopLeftOfHighestPowerSquareOfAnySize 4842
 
