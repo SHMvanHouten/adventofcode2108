@@ -35,6 +35,13 @@ test-suite adventofcode2018-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
+  other-modules:       AOC.Day06DangerAreas.Day06Spec
+                     , AOC.Day07.BuildingASleighPart2Spec
+                     , AOC.Day07.BuildingASleighSpec
+                     , AOC.Day08.LicenseTreePart2Spec
+                     , AOC.Day08.LicenseTreeSpec
+                     , AOC.Day09.MarbleGameSpec
+                     , AOC.Day10.StarMessageSpec
   build-depends:       base
                      , adventofcode2018
                      , hspec
