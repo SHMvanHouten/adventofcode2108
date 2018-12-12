@@ -22,6 +22,7 @@ library
                      , AOC.Day09.MarbleGame
                      , AOC.Day10.StarMessage
                      , AOC.Day11.PowerGrid
+                     , AOC.Day12.PlantSpreading
   build-depends:       base >= 4.7 && < 5, containers, split, pointedlist
   default-language:    Haskell2010
 
@@ -45,6 +46,7 @@ test-suite adventofcode2018-test
                      , AOC.Day09.MarbleGameSpec
                      , AOC.Day10.StarMessageSpec
                      , AOC.Day11.PowerGridSpec
+                     , AOC.Day12.PlantSpreadingSpec
   build-depends:       base
                      , adventofcode2018
                      , hspec
