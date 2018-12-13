@@ -1,6 +1,19 @@
 module AOC.Day12.PlantSpreading where
 
 import qualified Data.Map as Map
+import qualified Data.Set as Set
+
+passAndPrintGenerations :: Int -> Instructions -> ([Plant], Int) -> Int-> IO ()
+-- using this function the pattern was pretty obvious
+passAndPrintGenerations iteration instructions (plants, startingIndex) lastIteration
+  | iteration > lastIteration = print plants
+  | otherwise = do
+      print "iteration, plantValue"
+      print iteration
+      print startingIndex
+      print $ calculateTotalPlantValue plants startingIndex
+      print "................."
+      passAndPrintGenerations (iteration + 1) instructions (procreate plants instructions startingIndex []) lastIteration
 
 calculateTotalPlantValue plants startingIndex = do
               sum $ map (fst) $filter (\x -> snd x == '#') (zip [startingIndex..] plants)
@@ -15,7 +28,6 @@ passGenerations amount instructions (plants, startingIndex)
 -- to the left of the list
 -- and reversing the result at the end (after we trim the empty pots at the end
 procreate :: [Plant] -> Instructions -> Int -> [Plant] -> ([Plant], Int)
-
 --case: start
 procreate (c:r1:r2:xs) instructions startingIndex [] = do
   let leftOfEdgeChar = getLeftOfEdgeChar c r1 instructions
