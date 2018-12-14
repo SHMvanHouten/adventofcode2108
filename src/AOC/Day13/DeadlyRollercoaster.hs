@@ -13,7 +13,7 @@ crashUntilOneLasts :: TrackMap -> [Cart] -> Coordinate
 crashUntilOneLasts trackMap carts = moveCartsUntilOneIsLeft (List.sort carts) [] trackMap
 
 moveCartsUntilOneIsLeft :: [Cart] -> [Cart] -> TrackMap -> Coordinate
-moveCartsUntilOneIsLeft [cart] [] _ = position cart
+moveCartsUntilOneIsLeft [] [cart] _ = position cart
 moveCartsUntilOneIsLeft [] doneCarts trackmap = moveCartsUntilOneIsLeft (List.sort doneCarts) [] trackmap
 moveCartsUntilOneIsLeft (cart:nextCarts) doneCarts trackMap
   | detectCrash movedCart (nextCarts++doneCarts) = moveCartsUntilOneIsLeft (removeCrashedCart movedCart nextCarts) (removeCrashedCart movedCart doneCarts) trackMap
@@ -109,7 +109,7 @@ addTrack coordinate trackType trackMap = Map.insert coordinate (Track (coordinat
 
 data TrackType = Horizontal | Vertical | Crossing | BackSlash | SlashForward deriving (Show, Eq)
 
-data Turn = L | FW| R  deriving (Enum, Show, Eq, Bounded)
+data Turn = L | FW | R  deriving (Enum, Show, Eq, Bounded)
 instance CircularEnum Turn
 
 data Track = Track {

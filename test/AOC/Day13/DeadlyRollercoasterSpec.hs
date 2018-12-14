@@ -17,7 +17,7 @@ spec = do
     it "should solve the challenge" $ do
       contents <- readFile "resources/input-day13.txt"
       let trackMapToCarts = parseRawInput contents
-      crashUntilOneLasts (fst trackMapToCarts) (snd trackMapToCarts) `shouldBe` Coordinate 69 147
+      crashUntilOneLasts (fst trackMapToCarts) (snd trackMapToCarts) `shouldBe` Coordinate 2 81
 
   describe "it should solve the challenge input" $ do
     it "should solve the challenge" $ do
@@ -75,7 +75,6 @@ spec = do
       (moveCart cart trackMap) `shouldBe` Cart (Coordinate 4 2) East FW
     it "should move the cart in the direction it is facing and turn right on the crossing, next turn should be L" $ do
       contents <- readFile "test/resources/day13-testInput.txt"
-      print $ parseRawInput contents
       let trackMap = fst $ parseRawInput contents
       let cart = Cart (Coordinate 4 1) South R
       (moveCart cart trackMap) `shouldBe` Cart (Coordinate 4 2) West L
