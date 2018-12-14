@@ -7,7 +7,18 @@ import AOC.Util.Coordinate
 import AOC.Util.Direction
 
 findFirstCrash :: TrackMap -> [Cart] -> Coordinate
-findFirstCrash trackMap carts = moveCartsUntilCrash carts [] trackMap
+findFirstCrash trackMap carts = moveCartsUntilCrash (List.sort carts) [] trackMap
+
+crashUntilOneLasts :: TrackMap -> [Cart] -> Coordinate
+crashUntilOneLasts trackMap carts = moveCartsUntilOneIsLeft (List.sort carts) [] trackMap
+
+moveCartsUntilOneIsLeft :: [Cart] -> [Cart] -> TrackMap -> Coordinate
+moveCartsUntilOneIsLeft [cart] [] _ = position cart
+moveCartsUntilOneIsLeft [] doneCarts trackmap = moveCartsUntilOneIsLeft (List.sort doneCarts) [] trackmap
+moveCartsUntilOneIsLeft (cart:nextCarts) doneCarts trackMap
+  | detectCrash movedCart (nextCarts++doneCarts) = moveCartsUntilOneIsLeft (removeCrashedCart movedCart nextCarts) (removeCrashedCart movedCart doneCarts) trackMap
+  | otherwise = moveCartsUntilOneIsLeft nextCarts (movedCart:doneCarts) trackMap
+  where movedCart = moveCart cart trackMap
 
 moveCartsUntilCrash :: [Cart] -> [Cart] -> TrackMap -> Coordinate
 moveCartsUntilCrash [] doneCarts trackmap = moveCartsUntilCrash (List.sort doneCarts) [] trackmap
@@ -15,6 +26,8 @@ moveCartsUntilCrash (cart:nextCarts) doneCarts trackMap
   | detectCrash movedCart (nextCarts++doneCarts) = position movedCart
   | otherwise = moveCartsUntilCrash nextCarts (movedCart:doneCarts) trackMap
   where movedCart = moveCart cart trackMap
+
+removeCrashedCart cart otherCarts = filter (\p -> (position cart) /= (position p)) otherCarts
 
 ------------------
 -- move cart one tick

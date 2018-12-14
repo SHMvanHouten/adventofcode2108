@@ -17,6 +17,18 @@ spec = do
     it "should solve the challenge" $ do
       contents <- readFile "resources/input-day13.txt"
       let trackMapToCarts = parseRawInput contents
+      crashUntilOneLasts (fst trackMapToCarts) (snd trackMapToCarts) `shouldBe` Coordinate 69 147
+
+  describe "it should solve the challenge input" $ do
+    it "should solve the challenge" $ do
+      contents <- readFile "test/resources/day13-testInput2.txt"
+      let trackMapToCarts = parseRawInput contents
+      crashUntilOneLasts (fst trackMapToCarts) (snd trackMapToCarts) `shouldBe` Coordinate 6 4
+
+  describe "it should solve the challenge input" $ do
+    it "should solve the challenge" $ do
+      contents <- readFile "resources/input-day13.txt"
+      let trackMapToCarts = parseRawInput contents
       findFirstCrash (fst trackMapToCarts) (snd trackMapToCarts) `shouldBe` Coordinate 86 118
 
   describe "it should solve the test input" $ do
