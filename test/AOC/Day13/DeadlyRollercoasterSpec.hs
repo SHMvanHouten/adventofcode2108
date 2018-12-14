@@ -14,7 +14,7 @@ spec :: Spec
 spec = do
 
   describe "it should solve the challenge input" $ do
-    it "should solve the challenge" $ do
+    it "should solve the challenge pt 2" $ do
       contents <- readFile "resources/input-day13.txt"
       let trackMapToCarts = parseRawInput contents
       crashUntilOneLasts (fst trackMapToCarts) (snd trackMapToCarts) `shouldBe` Coordinate 2 81
