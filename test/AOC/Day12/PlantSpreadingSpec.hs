@@ -5,13 +5,12 @@ import Test.QuickCheck
 import qualified Data.Map as Map
 import AOC.Day12.PlantSpreading
 
-
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
 spec = do
-
+-- todo: make a dictionary with solved problems and their solutions
   describe "it should solve the challenge input" $ do
     it "should solve the challenge" $ do
       contents <- readFile "resources/input-day12.txt"
