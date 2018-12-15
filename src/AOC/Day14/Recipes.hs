@@ -1,71 +1,73 @@
 module AOC.Day14.Recipes where
 
+import qualified Data.Sequence as Seq
+import Data.List
+
+cookForTheMagicRecipe :: String -> Int
+cookForTheMagicRecipe magicRecipe = do
+  let initialState = RecipeState 0 1 (Seq.fromList [3,7,1,0]) ('x':map (\_ -> 'x') magicRecipe)
+  cookUntilWeFind initialState magicRecipe
+
 cookUntilWeFind :: RecipeState -> String -> Int
 cookUntilWeFind state magicString
-  | foundTheMagicString (recipes newState) magicString = length (recipes newState) - 5
+  | (Seq.length $ recipeBook newState) > 30000000 = error "nope"
+  | foundTheMagicString (theTail newState) magicString = Seq.length (recipeBook newState) - (length magicString)
   | otherwise = cookUntilWeFind newState magicString
   where newState = cook state
 
-foundTheMagicString recipeBook magicString = do
-  let magicLength = length magicString
-  let string1 = concatMap (show) $ take magicLength recipeBook
-  let string2 = concatMap (show) $ tail $ take (magicLength + 1) recipeBook
-
-  magicString == string1 || magicString == string2
+foundTheMagicString :: String -> String -> Bool
+foundTheMagicString theTail magicString = magicString `isInfixOf` theTail
 
 cookUntilN :: RecipeState -> Int -> String
 cookUntilN state n
-  | length (recipes newState) > n + 10 = calculateScore state n
+  | length (recipeBook newState) > n + 10 = calculateScore state n
   | otherwise = cookUntilN newState n
   where newState = cook state
 
 calculateScore :: RecipeState -> Int -> String
-calculateScore state n
-  | length recipeBook > n + 10 = stringify $ reverse $ tail (take 11 recipeBook)
-  | otherwise = stringify $ reverse $ take 10 recipeBook
-  where recipeBook = recipes state
+calculateScore state n = stringify $ Seq.drop n recipes
+  where recipes = recipeBook state
 
-stringify :: [Recipe] -> String
+stringify :: RecipeBook -> String
 stringify recipeOuttake = concatMap (show) recipeOuttake
 
 cook :: RecipeState -> RecipeState
 cook state = do
   let firstElf = elf1 state
   let secondElf = elf2 state
-  let oldRecipes = recipes state
+  let oldRecipes = recipeBook state
 
-  let elf1Recipe = get (firstElf) (oldRecipes)
-  let elf2Recipe = get (secondElf) (oldRecipes)
+  let elf1Recipe = oldRecipes `Seq.index` firstElf
+  let elf2Recipe = oldRecipes `Seq.index` secondElf
 
-  let dishes = elf1Recipe + elf2Recipe
-  let firstDish = dishes `div` 10
-  let secondDish = dishes `mod` 10
+  let dishes = getDigits (elf1Recipe + elf2Recipe)
 
-  let newRecipeBook = addDishes firstDish secondDish oldRecipes
+  let newRecipeBook = oldRecipes <> Seq.fromList dishes
   let recipesSize = length newRecipeBook
-  RecipeState (move firstElf elf1Recipe recipesSize) (move secondElf elf2Recipe recipesSize) newRecipeBook
-move :: Int -> Recipe -> Int -> Int
-move elf recipeValue recipesSize
-  | newIndex < recipesSize = newIndex
-  | otherwise = newIndex `mod` recipesSize
-  where newIndex = (elf + recipeValue + 1)
 
-addDishes :: Recipe -> Recipe -> [Recipe] -> [Recipe]
-addDishes firstDish secondDish dishes
-  | firstDish > 0 = add secondDish $ add firstDish dishes
-  | otherwise = add secondDish dishes
+  let updatedTail = updateTail dishes (theTail state)
+  RecipeState (move firstElf elf1Recipe recipesSize) (move secondElf elf2Recipe recipesSize) newRecipeBook updatedTail
+
+updateTail :: [Int] -> String -> String
+updateTail freshDishes oldTail =  drop (length freshDishes) $ oldTail ++ (concatMap (show) freshDishes)
+
+getDigits :: Int -> [Int]
+getDigits number
+  | x == 0 = [y]
+  | otherwise = [x,y]
+  where (x,y) = divMod number 10
+
+move :: Int -> Recipe -> Int -> Int
+move elf recipeValue recipesSize = newIndex `mod` recipesSize
+  where newIndex = (elf + recipeValue + 1)
 
 data RecipeState = RecipeState {
   elf1 :: Int,
   elf2 :: Int,
-  recipes :: [Recipe]
+  recipeBook :: RecipeBook,
+  theTail :: String
 } deriving (Show, Eq)
 
 type Recipe = Int
+type RecipeBook = Seq.Seq Recipe
 
--- recipes will have to be added at the start so we have to reverse the list
-add :: a -> [a] -> [a]
-add item list = item:list
-
-get :: Int -> [a] -> a
-get i list = list!!(length list - (1+i))
