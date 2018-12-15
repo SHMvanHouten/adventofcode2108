@@ -1,5 +1,18 @@
 module AOC.Day14.Recipes where
 
+cookUntilWeFind :: RecipeState -> String -> Int
+cookUntilWeFind state magicString
+  | foundTheMagicString (recipes newState) magicString = length (recipes newState) - 5
+  | otherwise = cookUntilWeFind newState magicString
+  where newState = cook state
+
+foundTheMagicString recipeBook magicString = do
+  let magicLength = length magicString
+  let string1 = concatMap (show) $ take magicLength recipeBook
+  let string2 = concatMap (show) $ tail $ take (magicLength + 1) recipeBook
+
+  magicString == string1 || magicString == string2
+
 cookUntilN :: RecipeState -> Int -> String
 cookUntilN state n
   | length (recipes newState) > n + 10 = calculateScore state n
