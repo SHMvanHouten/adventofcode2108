@@ -27,3 +27,6 @@ getAllCoordinatesBetween x1 y1 x2 y2 = do
   concatMap (\y -> toLine y [x1..x2]) [y1..y2]
 
 toLine y xRange= map (\x -> Coordinate x y) xRange
+
+getSurroundingCoordinates :: Coordinate -> [Coordinate]
+getSurroundingCoordinates coordinate = [moveUp coordinate, moveLeft coordinate, moveRight coordinate, moveDown coordinate]

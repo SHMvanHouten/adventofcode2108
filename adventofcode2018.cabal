@@ -27,6 +27,7 @@ library
                      , AOC.Day13.DeadlyRollercoaster
                      , AOC.Day14.Recipes
                      , AOC.Day15.GoblinSlaying
+  extensions:          ViewPatterns
   build-depends:       base >= 4.7 && < 5, containers, split, pointedlist
   default-language:    Haskell2010
 
