@@ -59,7 +59,16 @@ spec = do
       let expectedCave = parseBattleCave expectedOutput
       doTurn startingCave `shouldBe` expectedCave
 
+  describe "attack and move npcs" $ do
+    it "should attack one elf and goblin and move the rest" $ do
+      let expectedOutput = parseBattleCave testInput2
+      let expectedElves = Map.fromList [(Coordinate 4 2, Npc (Coordinate 4 2) 197 Elves), (Coordinate 5 4, Npc (Coordinate 5 4) 197 Elves)]
+      let expectedGoblins = Map.insert (Coordinate 5 3 ) (Npc (Coordinate 5 3) 197 Goblins) $ Map.insert (Coordinate 5 2) (Npc (Coordinate 5 2) 197 Goblins) (goblins expectedOutput)
+      let expectedBattleCave = BattleCave (walls expectedOutput) expectedElves expectedGoblins
+      doTurn (parseBattleCave testInput) `shouldBe` expectedBattleCave
 
+
+-------------0123456
 testInput = "#######\n"++
             "#.G...#\n"++
             "#...EG#\n"++
@@ -67,3 +76,11 @@ testInput = "#######\n"++
             "#..G#E#\n"++
             "#.....#\n"++
             "#######\n"
+
+testInput2 = "#######\n"++
+             "#..G..#\n"++
+             "#...EG#\n"++
+             "#.#G#G#\n"++
+             "#...#E#\n"++
+             "#.....#\n"++
+             "#######\n"

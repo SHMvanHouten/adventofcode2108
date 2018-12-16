@@ -12,6 +12,8 @@ import Data.Maybe
 -- remove elf from battlecave
 -- do the elves move
 -- re-add the elf to the battlecave
+-- attackPower = 3
+attackPower = 3
 
 doTurn :: BattleCave -> BattleCave
 doTurn battleCave = do
@@ -22,9 +24,47 @@ doNpcTurns :: [Coordinate] -> BattleCave -> BattleCave
 doNpcTurns [] battleCave = battleCave
 doNpcTurns (currentNpcCoordinate:otherNpcs) battleCave = do
   let (currentNpc, battleCaveWithoutNpc) = getAndRemoveCurrentNpcFromBattleCave currentNpcCoordinate battleCave
-  let updatedNpc = moveNpc currentNpc battleCaveWithoutNpc
-  let updatedBattleCave = addNpcToBattleCave updatedNpc battleCaveWithoutNpc
-  doNpcTurns otherNpcs updatedBattleCave
+  let (battleWasDone, battleCaveAfterBattle) = attackAdjacentEnemy currentNpc battleCaveWithoutNpc
+  if battleWasDone then doNpcTurns otherNpcs (addNpcToBattleCave currentNpc battleCaveAfterBattle)
+  else do
+    let updatedNpc = moveNpc currentNpc battleCaveWithoutNpc
+    let updatedBattleCave = addNpcToBattleCave updatedNpc battleCaveWithoutNpc
+    doNpcTurns otherNpcs updatedBattleCave
+
+attackAdjacentEnemy :: Npc -> BattleCave -> (BattleWasDone, BattleCave)
+attackAdjacentEnemy npc battleCave
+  | species npc == Elves = do
+    let enemies = goblins battleCave
+    let (battleWasDone, updatedEnemies) = attackWeakestEnemyNextToNpc npc enemies
+    if battleWasDone then (True, BattleCave (walls battleCave) (elves battleCave) updatedEnemies)
+    else (False, battleCave)
+  | species npc == Goblins = do
+    let enemies = elves battleCave
+    let (battleWasDone, updatedEnemies) = attackWeakestEnemyNextToNpc npc enemies
+    if battleWasDone then (True, BattleCave (walls battleCave) updatedEnemies (goblins battleCave))
+    else (False, battleCave)
+
+attackWeakestEnemyNextToNpc:: Npc -> Map.Map Coordinate Npc -> (BattleWasDone, Map.Map Coordinate Npc)
+attackWeakestEnemyNextToNpc npc enemies = do
+    let weakestEnemy = findWeakestAdjacentEnemy npc enemies
+    if weakestEnemy == Nothing
+    then (False, enemies)
+    else do
+      let updatedWeakestEnemy = doDamageToEnemy $ fromJust weakestEnemy
+      let updatedEnemies = Map.insert (coordinate updatedWeakestEnemy) updatedWeakestEnemy enemies
+      (True, updatedEnemies)
+
+findWeakestAdjacentEnemy :: Npc -> Map.Map Coordinate Npc -> Maybe Npc
+findWeakestAdjacentEnemy npc enemies = do
+  let adjacentEnemyCoordinates = filter (\c -> c `Map.member` enemies) (getSurroundingCoordinates (coordinate npc))
+  if List.length adjacentEnemyCoordinates > 0
+  then do
+    let adjacentEnemies = map (\c -> enemies Map.! c) adjacentEnemyCoordinates
+    Just $ head $ List.sort adjacentEnemies
+  else
+    Nothing
+
+doDamageToEnemy enemy = Npc (coordinate enemy) (hitPoints enemy - attackPower) (species enemy)
 
 addNpcToBattleCave npc battleCave
   | species npc == Elves = BattleCave (walls battleCave) (Map.insert (coordinate npc) npc (elves battleCave)) (goblins battleCave)
@@ -116,6 +156,16 @@ data Npc = Npc {
   species :: Species
 } deriving (Show, Eq)
 
+instance Ord Npc where
+  compare (Npc c1 hp1 _) (Npc c2 hp2 _)
+    | hp1 == hp2 = compare c1 c2
+    | otherwise = compare hp1 hp2
+
+--instance Ord Coordinate where
+--  compare (Coordinate x1 y1) (Coordinate x2 y2)
+--    | y1 == y2 = compare x1 x2
+--    | otherwise = compare y1 y2
+
 type Elf = Npc
 type Goblin = Npc
 
@@ -140,3 +190,4 @@ takeSecond seq = fromJust $ seq Seq.!? 1
 getLast :: Seq.Seq a -> Maybe a
 getLast (Seq.viewr -> xs Seq.:> x) = Just x
 
+type BattleWasDone = Bool
