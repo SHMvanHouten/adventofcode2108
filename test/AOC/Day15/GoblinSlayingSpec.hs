@@ -15,9 +15,30 @@ main = hspec spec
 spec :: Spec
 spec = do
 
-  describe "it should solve the challenge input" $ do
-    it "should solve the challenge" $ do
-      pending
+  describe "it should solve the inputs" $ do
+    it "should solve the test input" $ do
+      let initialBattleCave = parseBattleCave testInput
+      let result = resolveCaveConflict initialBattleCave 0
+      print $ fst result
+      snd result `shouldBe` 27730
+    it "should solve the other test input" $ do
+      let initialBattleCave = parseBattleCave otherTestInput
+      let result = resolveCaveConflict initialBattleCave 0
+      print $ fst result
+      snd result `shouldBe` 36334
+    it "should solve a simple case" $ do
+      let input = "#######\n"++
+                  "#G....#\n"++
+                  "#.G...#\n"++
+                  "#.#.#G#\n"++
+                  "#...#E#\n"++
+                  "#....G#\n"++
+                  "#######\n"
+      let battleCave = parseBattleCave input
+      let updateElves = Map.fromList [(Coordinate 5 4, (Npc (Coordinate 5 4) 7 Elves))]
+      let caveWithWeakElf = BattleCave (walls battleCave) updateElves (goblins battleCave)
+      let result = resolveCaveConflict caveWithWeakElf 0
+      snd result `shouldBe` 797
 
   describe "parseBattleCave" $ do
     it "parses the raw input into a battle cave" $ do
@@ -66,7 +87,19 @@ spec = do
       let expectedGoblins = Map.insert (Coordinate 5 3 ) (Npc (Coordinate 5 3) 197 Goblins) $ Map.insert (Coordinate 5 2) (Npc (Coordinate 5 2) 197 Goblins) (goblins expectedOutput)
       let expectedBattleCave = BattleCave (walls expectedOutput) expectedElves expectedGoblins
       doTurn (parseBattleCave testInput) `shouldBe` expectedBattleCave
-
+    it "should kill the last elf" $ do
+      let input = "#######\n"++
+                  "#G....#\n"++
+                  "#.G...#\n"++
+                  "#.#.#G#\n"++
+                  "#...#E#\n"++
+                  "#....G#\n"++
+                  "#######\n"
+      let battleCave = parseBattleCave input
+      let updateElves = Map.fromList [(Coordinate 5 4, (Npc (Coordinate 5 4) 3 Elves))]
+      let caveWithWeakElf = BattleCave (walls battleCave) updateElves (goblins battleCave)
+      let result = doTurn caveWithWeakElf
+      (elves result) `shouldBe` Map.empty
 
 -------------0123456
 testInput = "#######\n"++
@@ -84,3 +117,11 @@ testInput2 = "#######\n"++
              "#...#E#\n"++
              "#.....#\n"++
              "#######\n"
+
+otherTestInput = "#######\n"++
+                 "#G..#E#\n"++
+                 "#E#E.E#\n"++
+                 "#G.##.#\n"++
+                 "#...#E#\n"++
+                 "#...E.#\n"++
+                 "#######\n"

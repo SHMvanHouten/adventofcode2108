@@ -8,12 +8,16 @@ import qualified Data.List as List
 import Data.Traversable (fmapDefault)
 import Data.Maybe
 
--- takeStep
--- remove elf from battlecave
--- do the elves move
--- re-add the elf to the battlecave
--- attackPower = 3
 attackPower = 3
+
+resolveCaveConflict :: BattleCave -> Int -> (BattleCave, Int)
+resolveCaveConflict battleCave turns = do
+  let updatedBattleCave = doTurn battleCave
+  if allGoblinsOrElvesWereKilled updatedBattleCave then (updatedBattleCave, (calculateEndResult updatedBattleCave turns))
+  else resolveCaveConflict updatedBattleCave (turns + 1)
+
+calculateEndResult :: BattleCave -> Int -> Int
+calculateEndResult battleCave turns = turns * (List.sum $ map(hitPoints) $ Map.elems $ Map.union (elves battleCave) (goblins battleCave))
 
 doTurn :: BattleCave -> BattleCave
 doTurn battleCave = do
@@ -23,13 +27,21 @@ doTurn battleCave = do
 doNpcTurns :: [Coordinate] -> BattleCave -> BattleCave
 doNpcTurns [] battleCave = battleCave
 doNpcTurns (currentNpcCoordinate:otherNpcs) battleCave = do
-  let (currentNpc, battleCaveWithoutNpc) = getAndRemoveCurrentNpcFromBattleCave currentNpcCoordinate battleCave
-  let (battleWasDone, battleCaveAfterBattle) = attackAdjacentEnemy currentNpc battleCaveWithoutNpc
-  if battleWasDone then doNpcTurns otherNpcs (addNpcToBattleCave currentNpc battleCaveAfterBattle)
+  let (maybeNpc, battleCaveWithoutNpc) = getAndRemoveCurrentNpcFromBattleCave currentNpcCoordinate battleCave
+  -- npc was killed before its turn:
+  if isNothing maybeNpc then doNpcTurns otherNpcs battleCave
   else do
-    let updatedNpc = moveNpc currentNpc battleCaveWithoutNpc
-    let updatedBattleCave = addNpcToBattleCave updatedNpc battleCaveWithoutNpc
-    doNpcTurns otherNpcs updatedBattleCave
+    if allGoblinsOrElvesWereKilled battleCave then battleCave
+    else do
+      let currentNpc = fromJust maybeNpc
+      let (battleWasDone, battleCaveAfterBattle) = attackAdjacentEnemy currentNpc battleCaveWithoutNpc
+      if battleWasDone then doNpcTurns otherNpcs (addNpcToBattleCave currentNpc battleCaveAfterBattle)
+      else do
+        let updatedNpc = moveNpc currentNpc battleCaveWithoutNpc
+        let updatedBattleCave = addNpcToBattleCave updatedNpc battleCaveWithoutNpc
+        doNpcTurns otherNpcs updatedBattleCave
+
+allGoblinsOrElvesWereKilled battleCave = Map.size (elves battleCave) == 0 || Map.size (goblins battleCave) == 0
 
 attackAdjacentEnemy :: Npc -> BattleCave -> (BattleWasDone, BattleCave)
 attackAdjacentEnemy npc battleCave
@@ -51,8 +63,11 @@ attackWeakestEnemyNextToNpc npc enemies = do
     then (False, enemies)
     else do
       let updatedWeakestEnemy = doDamageToEnemy $ fromJust weakestEnemy
-      let updatedEnemies = Map.insert (coordinate updatedWeakestEnemy) updatedWeakestEnemy enemies
-      (True, updatedEnemies)
+      if hitPoints updatedWeakestEnemy <= 0
+      then (True, Map.delete (coordinate updatedWeakestEnemy) enemies)
+      else do
+        let updatedEnemies = Map.insert (coordinate updatedWeakestEnemy) updatedWeakestEnemy enemies
+        (True, updatedEnemies)
 
 findWeakestAdjacentEnemy :: Npc -> Map.Map Coordinate Npc -> Maybe Npc
 findWeakestAdjacentEnemy npc enemies = do
@@ -70,11 +85,11 @@ addNpcToBattleCave npc battleCave
   | species npc == Elves = BattleCave (walls battleCave) (Map.insert (coordinate npc) npc (elves battleCave)) (goblins battleCave)
   | species npc == Goblins = BattleCave (walls battleCave) (elves battleCave) (Map.insert (coordinate npc) npc (goblins battleCave))
 
-getAndRemoveCurrentNpcFromBattleCave :: Coordinate -> BattleCave -> (Npc, BattleCave)
+getAndRemoveCurrentNpcFromBattleCave :: Coordinate -> BattleCave -> (Maybe Npc, BattleCave)
 getAndRemoveCurrentNpcFromBattleCave coordinate battleCave
-  | coordinate `Map.member` (goblins battleCave) = (((goblins battleCave) Map.! coordinate), BattleCave (walls battleCave) (elves battleCave) (Map.delete coordinate (goblins battleCave)))
-  | coordinate `Map.member` (elves battleCave) = (((elves battleCave) Map.! coordinate), BattleCave (walls battleCave) (Map.delete coordinate (elves battleCave)) (goblins battleCave))
-  | otherwise = error "coordinate not found in elves or goblins!"
+  | coordinate `Map.member` (goblins battleCave) = ((Just $ (goblins battleCave) Map.! coordinate), BattleCave (walls battleCave) (elves battleCave) (Map.delete coordinate (goblins battleCave)))
+  | coordinate `Map.member` (elves battleCave) = ((Just $ (elves battleCave) Map.! coordinate), BattleCave (walls battleCave) (Map.delete coordinate (elves battleCave)) (goblins battleCave))
+  | otherwise = (Nothing, battleCave)
 
 orderNpcs :: Map.Map Coordinate Elf -> Map.Map Coordinate Goblin -> [Coordinate]
 orderNpcs elves goblins = List.sort ((Map.keys elves) ++ (Map.keys goblins))
@@ -84,35 +99,33 @@ moveNpc npc battleCave = do
   if species npc == Elves
     then do
       let shortestPath = findShortestPathToOpponent npc (Set.union (walls battleCave) (Set.fromList (Map.keys (elves battleCave)))) (Set.fromList $ Map.keys $ goblins battleCave)
-      Npc (takeSecond (pathSoFar shortestPath)) (hitPoints npc) (species npc)
+      if isNothing shortestPath then npc
+      else Npc (takeSecond (pathSoFar (fromJust shortestPath))) (hitPoints npc) (species npc)
     else do
       let shortestPath = findShortestPathToOpponent npc (Set.union (walls battleCave) (Set.fromList (Map.keys (goblins battleCave)))) (Set.fromList $ Map.keys $ elves battleCave)
-      Npc (takeSecond (pathSoFar shortestPath)) (hitPoints npc) (species npc)
+      if isNothing shortestPath then npc
+      else Npc (takeSecond (pathSoFar (fromJust shortestPath))) (hitPoints npc) (species npc)
 
-findShortestPathToOpponent :: Npc -> Set.Set Coordinate -> Set.Set Coordinate -> Path
-findShortestPathToOpponent npc obstacles opponents = findPaths (Seq.fromList [Path npcCoordinate (Seq.fromList [npcCoordinate])]) obstacles opponents
+findShortestPathToOpponent :: Npc -> Set.Set Coordinate -> Set.Set Coordinate -> Maybe Path
+findShortestPathToOpponent npc obstacles opponents = findPaths (Seq.fromList [Path npcCoordinate (Seq.fromList [npcCoordinate])]) obstacles opponents (Set.empty)
   where npcCoordinate = coordinate npc
 
 -- todo: change return value path to maybe in case all opponents are dead? or check for empty elves and goblins beforehand
-findPaths :: Seq.Seq Path -> Set.Set Coordinate -> Set.Set Coordinate -> Path
-findPaths paths obstacles opponents
-  | isAdjacentToOpponent currentPath opponents = currentPath
-  | otherwise = findPaths (addNextStepsOfCurrentPath currentPath obstacles restOfPaths) obstacles opponents
+findPaths :: Seq.Seq Path -> Set.Set Coordinate -> Set.Set Coordinate -> Set.Set Coordinate -> Maybe Path
+findPaths paths obstacles opponents coordinatesPathedTo
+  | Seq.length paths == 0 = Nothing
+  | isAdjacentToOpponent currentPath opponents = Just currentPath
+  | otherwise = do
+    let nextSteps = getNextStepsOfCurrentPath currentPath obstacles coordinatesPathedTo
+    let pathsToAdd = Seq.fromList $ map (\c -> toPath c currentPath) nextSteps
+    findPaths (restOfPaths Seq.>< pathsToAdd) obstacles opponents (Set.union (Set.fromList nextSteps) coordinatesPathedTo)
   where (currentPath, restOfPaths) = splitFirstAndRest paths
 
-addNextStepsOfCurrentPath :: Path -> Set.Set Coordinate -> Seq.Seq Path -> Seq.Seq Path
-addNextStepsOfCurrentPath currentPath obstacles paths = do
-  let freeCoordinates = findFreeCoordinates currentPath obstacles paths
-  let pathsToAdd = Seq.fromList $ map (\c -> toPath c currentPath) freeCoordinates
-  paths Seq.>< pathsToAdd
-
-findFreeCoordinates :: Path -> Set.Set Coordinate -> Seq.Seq Path -> [Coordinate]
-findFreeCoordinates currentPath obstacles otherPaths = do
-  let surroundingCoords = removeLastCoordinateOfCurrentPath (pathSoFar currentPath) (getSurroundingCoordinates (currentPosition currentPath))
-  let coordsNotAlreadyPathedTo = filter (\c -> coordIsNotAlreadyPathedTo c (fmapDefault (currentPosition) otherPaths)) surroundingCoords
-  filter (\c -> c `notElem` obstacles) surroundingCoords
-
-coordIsNotAlreadyPathedTo coordinate takenCoordinates = not (any (\c -> c == coordinate) takenCoordinates)
+getNextStepsOfCurrentPath currentPath obstacles coordinatesPathedTo = do
+  let freeCoordinates = getSurroundingCoordinates (currentPosition currentPath)
+  let coordinatesNotPathedToAlready = filter (\c -> c `Set.notMember` coordinatesPathedTo) freeCoordinates
+  let unblockedCoordinates = filter (\c -> c `notElem` obstacles) coordinatesNotPathedToAlready
+  unblockedCoordinates
 
 removeLastCoordinateOfCurrentPath :: Seq.Seq Coordinate -> [Coordinate] -> [Coordinate]
 removeLastCoordinateOfCurrentPath pathsSoFar coordinates
@@ -160,11 +173,6 @@ instance Ord Npc where
   compare (Npc c1 hp1 _) (Npc c2 hp2 _)
     | hp1 == hp2 = compare c1 c2
     | otherwise = compare hp1 hp2
-
---instance Ord Coordinate where
---  compare (Coordinate x1 y1) (Coordinate x2 y2)
---    | y1 == y2 = compare x1 x2
---    | otherwise = compare y1 y2
 
 type Elf = Npc
 type Goblin = Npc
