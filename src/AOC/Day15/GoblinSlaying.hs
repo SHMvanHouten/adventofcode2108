@@ -121,18 +121,26 @@ moveNpc npc battleCave = do
       else Npc (takeSecond (pathSoFar (fromJust shortestPath))) (hitPoints npc) (species npc)
 
 findShortestPathToOpponent :: Npc -> Set.Set Coordinate -> Set.Set Coordinate -> Maybe Path
-findShortestPathToOpponent npc obstacles opponents = findPaths (Seq.fromList [Path npcCoordinate (Seq.fromList [npcCoordinate])]) obstacles opponents (Set.empty)
-  where npcCoordinate = coordinate npc
+findShortestPathToOpponent npc obstacles opponents = do
+  let npcCoordinate = coordinate npc
+  let foundPaths = findPaths (Seq.fromList [Path npcCoordinate (Seq.fromList [npcCoordinate])]) obstacles opponents (Set.empty) []
+  if isEmpty foundPaths then Nothing
+  else Just $ getBestPath foundPaths
+
+getBestPath paths = minimum paths
 
 -- todo: change return value path to maybe in case all opponents are dead? or check for empty elves and goblins beforehand
-findPaths :: Seq.Seq Path -> Set.Set Coordinate -> Set.Set Coordinate -> Set.Set Coordinate -> Maybe Path
-findPaths paths obstacles opponents coordinatesPathedTo
-  | Seq.length paths == 0 = Nothing
-  | isAdjacentToOpponent currentPath opponents = Just currentPath
+findPaths :: Seq.Seq Path -> Set.Set Coordinate -> Set.Set Coordinate -> Set.Set Coordinate -> [Path] -> [Path]
+findPaths paths obstacles opponents coordinatesPathedTo foundPaths
+  | Seq.length paths == 0 = foundPaths
+  | isAdjacentToOpponent currentPath opponents = do
+    if (isEmpty foundPaths) || ((Seq.length $ pathSoFar currentPath) <= (Seq.length $ pathSoFar $ head foundPaths))
+    then findPaths restOfPaths obstacles opponents coordinatesPathedTo (currentPath:foundPaths)
+    else foundPaths
   | otherwise = do
     let nextSteps = getNextStepsOfCurrentPath currentPath obstacles coordinatesPathedTo
     let pathsToAdd = Seq.fromList $ map (\c -> toPath c currentPath) nextSteps
-    findPaths (restOfPaths Seq.>< pathsToAdd) obstacles opponents (Set.union (Set.fromList nextSteps) coordinatesPathedTo)
+    findPaths (restOfPaths Seq.>< pathsToAdd) obstacles opponents (Set.union (Set.fromList nextSteps) coordinatesPathedTo) foundPaths
   where (currentPath, restOfPaths) = splitFirstAndRest paths
 
 getNextStepsOfCurrentPath currentPath obstacles coordinatesPathedTo = do
@@ -194,7 +202,12 @@ type Goblin = Npc
 data Path = Path {
   currentPosition :: Coordinate,
   pathSoFar :: Seq.Seq Coordinate
-}
+} deriving (Eq, Show)
+
+instance Ord Path where
+  compare (Path pos1 path1) (Path pos2 path2)
+    | (Seq.length path1) == (Seq.length path2) = compare pos1 pos2
+    | otherwise = compare (Seq.length path1) (Seq.length path2)
 
 data Species = Elves | Goblins deriving (Show, Eq)
 
@@ -213,3 +226,6 @@ getLast :: Seq.Seq a -> Maybe a
 getLast (Seq.viewr -> xs Seq.:> x) = Just x
 
 type BattleWasDone = Bool
+
+isEmpty :: [a] -> Bool
+isEmpty list = length list == 0

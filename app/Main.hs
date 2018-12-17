@@ -4,12 +4,21 @@ import AOC.Day15.GoblinSlaying
 
 main :: IO ()
 main = do
-  content <- readFile "resources/input-day15-extra.txt"
+  content <- readFile "resources/input-day15.txt"
   let initialBattleCave = parseBattleCave content
   let resolvedConflict = resolveCaveConflict initialBattleCave 0
---  print $ fst resolvedConflict
---  print $ snd resolvedConflict
-  printCaveConflict (parseBattleCave content) 0
+  print $ fst resolvedConflict
+  print $ snd resolvedConflict
+--  printCaveConflict (parseBattleCave randomTest) 0
+
+randomTest = "#######\n"++
+             "#######\n"++
+             "#.E..G#\n"++
+             "#.#####\n"++
+             "#G#####\n"++
+             "#######\n"++
+             "#######\n"
+
 --------------0123456
 testInput =  "#######\n"++ -- 0
              "#.G...#\n"++ -- 1
