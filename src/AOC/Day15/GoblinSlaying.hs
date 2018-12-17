@@ -8,8 +8,6 @@ import qualified Data.List as List
 import Data.Traversable (fmapDefault)
 import Data.Maybe
 
-attackPower = 3
-
 printCaveConflict :: BattleCave -> Int -> IO ()
 printCaveConflict battleCave turn = do
   let updatedBattleCave = doTurn battleCave
@@ -22,6 +20,21 @@ printCaveConflict battleCave turn = do
     putStrLn $ unlines (map (show) $ Map.elems $ elves updatedBattleCave)
     putStrLn $ unlines (map (show) $ Map.elems $ goblins updatedBattleCave)
     printCaveConflict updatedBattleCave (turn + 1)
+
+findFirstTimeAllElvesSurvive :: String -> Int -> (Int, Int)
+findFirstTimeAllElvesSurvive rawInput elfPower = do
+  let battleCave = parseBattleCave rawInput elfPower
+  let (result, valueOfEndConflict) = resolveCaveConflictUntilElfDies battleCave 0 (Map.size (elves battleCave))
+  if result then (valueOfEndConflict, elfPower)
+  else findFirstTimeAllElvesSurvive rawInput (elfPower + 1)
+
+
+resolveCaveConflictUntilElfDies :: BattleCave -> Int -> Int -> (Bool, Int)
+resolveCaveConflictUntilElfDies battleCave turns startingElfForce
+  | (Map.size (elves battleCave) < startingElfForce) = (False, (calculateEndResult updatedBattleCave turns))
+  | Map.size (goblins battleCave) == 0 = (True, (calculateEndResult updatedBattleCave turns))
+  | otherwise = resolveCaveConflictUntilElfDies updatedBattleCave (turns + 1) startingElfForce
+  where updatedBattleCave = doTurn battleCave
 
 resolveCaveConflict :: BattleCave -> Int -> (Int, Int)
 resolveCaveConflict battleCave turns
@@ -76,7 +89,7 @@ attackWeakestEnemyNextToNpc npc enemies = do
     if weakestEnemy == Nothing
     then (False, enemies)
     else do
-      let updatedWeakestEnemy = doDamageToEnemy $ fromJust weakestEnemy
+      let updatedWeakestEnemy = doDamageToEnemy (fromJust weakestEnemy) (attackPower npc)
       if hitPoints updatedWeakestEnemy <= 0
       then (True, Map.delete (coordinate updatedWeakestEnemy) enemies)
       else do
@@ -93,7 +106,8 @@ findWeakestAdjacentEnemy npc enemies = do
   else
     Nothing
 
-doDamageToEnemy enemy = Npc (coordinate enemy) (hitPoints enemy - attackPower) (species enemy)
+doDamageToEnemy :: Npc -> Int -> Npc
+doDamageToEnemy enemy damage = Npc (coordinate enemy) (hitPoints enemy - damage) (species enemy) (attackPower enemy)
 
 addNpcToBattleCave npc battleCave
   | species npc == Elves = BattleCave (walls battleCave) (Map.insert (coordinate npc) npc (elves battleCave)) (goblins battleCave)
@@ -114,11 +128,11 @@ moveNpc npc battleCave = do
     then do
       let shortestPath = findShortestPathToOpponent npc (Set.union (walls battleCave) (Set.fromList (Map.keys (elves battleCave)))) (Set.fromList $ Map.keys $ goblins battleCave)
       if isNothing shortestPath then npc
-      else Npc (takeSecond (pathSoFar (fromJust shortestPath))) (hitPoints npc) (species npc)
+      else Npc (takeSecond (pathSoFar (fromJust shortestPath))) (hitPoints npc) (species npc) (attackPower npc)
     else do
       let shortestPath = findShortestPathToOpponent npc (Set.union (walls battleCave) (Set.fromList (Map.keys (goblins battleCave)))) (Set.fromList $ Map.keys $ elves battleCave)
       if isNothing shortestPath then npc
-      else Npc (takeSecond (pathSoFar (fromJust shortestPath))) (hitPoints npc) (species npc)
+      else Npc (takeSecond (pathSoFar (fromJust shortestPath))) (hitPoints npc) (species npc) (attackPower npc)
 
 findShortestPathToOpponent :: Npc -> Set.Set Coordinate -> Set.Set Coordinate -> Maybe Path
 findShortestPathToOpponent npc obstacles opponents = do
@@ -163,19 +177,19 @@ isAdjacentToOpponent path opponents = any (\c -> c `Set.member` opponents) $ get
 -----------------------
 -- PARSE BATTLE CAVE
 -----------------------
-parseBattleCave rawInput = toCaveLine (lines rawInput) 0 emptyBattleCave
+parseBattleCave rawInput elfPower = toCaveLine (lines rawInput) 0 elfPower emptyBattleCave
 
-toCaveLine :: [String] -> Int -> BattleCave -> BattleCave
-toCaveLine [] _ battleCave = battleCave
-toCaveLine (rawLine:rawLines) y battleCave = toCaveLine rawLines (y + 1) (parseChar rawLine 0 y battleCave)
+toCaveLine :: [String] -> Int -> Int -> BattleCave -> BattleCave
+toCaveLine [] _ _ battleCave = battleCave
+toCaveLine (rawLine:rawLines) y elfPower battleCave = toCaveLine rawLines (y + 1) elfPower (parseChar rawLine 0 y elfPower battleCave)
 
-parseChar :: String -> Int -> Int -> BattleCave -> BattleCave
-parseChar [] _ _ battleCave = battleCave
-parseChar (char:chars) x y battleCave
-  | char == '.' = parseChar chars (x + 1) y battleCave
-  | char == '#' = parseChar chars (x + 1) y (BattleCave (Set.insert currentCoordinate (walls battleCave)) (elves battleCave) (goblins battleCave))
-  | char == 'E' = parseChar chars (x + 1) y (BattleCave (walls battleCave) (Map.insert currentCoordinate (Npc currentCoordinate 200 Elves) (elves battleCave)) (goblins battleCave))
-  | char == 'G' = parseChar chars (x + 1) y (BattleCave (walls battleCave) (elves battleCave) (Map.insert currentCoordinate (Npc currentCoordinate 200 Goblins) (goblins battleCave)))
+parseChar :: String -> Int -> Int -> Int -> BattleCave -> BattleCave
+parseChar [] _ _ _ battleCave = battleCave
+parseChar (char:chars) x y elfPower battleCave
+  | char == '.' = parseChar chars (x + 1) y elfPower battleCave
+  | char == '#' = parseChar chars (x + 1) y elfPower (BattleCave (Set.insert currentCoordinate (walls battleCave)) (elves battleCave) (goblins battleCave))
+  | char == 'E' = parseChar chars (x + 1) y elfPower (BattleCave (walls battleCave) (Map.insert currentCoordinate (Npc currentCoordinate 200 Elves elfPower) (elves battleCave)) (goblins battleCave))
+  | char == 'G' = parseChar chars (x + 1) y elfPower (BattleCave (walls battleCave) (elves battleCave) (Map.insert currentCoordinate (Npc currentCoordinate 200 Goblins 3) (goblins battleCave)))
   | otherwise = error ("unknown char" ++ (show char))
   where currentCoordinate = Coordinate x y
 
@@ -188,11 +202,12 @@ data BattleCave =  BattleCave {
 data Npc = Npc {
   coordinate :: Coordinate,
   hitPoints :: Int,
-  species :: Species
+  species :: Species,
+  attackPower :: Int
 } deriving (Show, Eq)
 
 instance Ord Npc where
-  compare (Npc c1 hp1 _) (Npc c2 hp2 _)
+  compare (Npc c1 hp1 _ _) (Npc c2 hp2 _ _)
     | hp1 == hp2 = compare c1 c2
     | otherwise = compare hp1 hp2
 
