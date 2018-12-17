@@ -1,16 +1,42 @@
 module Main where
 
-import AOC.Day12.PlantSpreading
+import AOC.Day15.GoblinSlaying
 
 main :: IO ()
 main = do
-  contents <- readFile "resources/input-day12-other.txt"
-  let input = parseRawPlantInstructions contents
-  passAndPrintGenerations 0 (fst input) ((snd input), 0) 100000
+  content <- readFile "resources/input-day15-extra.txt"
+  let initialBattleCave = parseBattleCave content
+  let resolvedConflict = resolveCaveConflict initialBattleCave 0
+--  print $ fst resolvedConflict
+--  print $ snd resolvedConflict
+  printCaveConflict (parseBattleCave content) 0
+--------------0123456
+testInput =  "#######\n"++ -- 0
+             "#.G...#\n"++ -- 1
+             "#...EG#\n"++ -- 2
+             "#.#.#G#\n"++ -- 3
+             "#..G#E#\n"++ -- 4
+             "#.....#\n"++
+             "#######\n"
 
-  let plantsToStartingIndex = passGenerations 9999 (fst input) ((snd input), 0)
-  let valueOf10000Gererations = calculateTotalPlantValue (fst plantsToStartingIndex) (snd plantsToStartingIndex)
+------------------0123456
+otherTestInput = "#######\n"++
+                 "#G..#E#\n"++
+                 "#E#E.E#\n"++
+                 "#G.##.#\n"++
+                 "#...#E#\n"++
+                 "#...E.#\n"++
+                 "#######\n"
 
-  print valueOf10000Gererations
-  print "this is our answer:"
-  print $ calculateTotalPlantValue (fst plantsToStartingIndex) 1000
+movementTestInput = "#########\n"++
+                    "#G..G..G#\n"++
+                    "#.......#\n"++
+                    "#.......#\n"++
+                    "#G..E..G#\n"++
+                    "#.......#\n"++
+                    "#.......#\n"++
+                    "#G..G..G#\n"++
+                    "#########\n"
+
+
+-- answer is between 182715 and 185526

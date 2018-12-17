@@ -10,11 +10,24 @@ import Data.Maybe
 
 attackPower = 3
 
-resolveCaveConflict :: BattleCave -> Int -> (BattleCave, Int)
-resolveCaveConflict battleCave turns = do
+printCaveConflict :: BattleCave -> Int -> IO ()
+printCaveConflict battleCave turn = do
   let updatedBattleCave = doTurn battleCave
-  if allGoblinsOrElvesWereKilled updatedBattleCave then (updatedBattleCave, (calculateEndResult updatedBattleCave turns))
-  else resolveCaveConflict updatedBattleCave (turns + 1)
+  if allGoblinsOrElvesWereKilled updatedBattleCave then do
+        print $ turn + 1
+        putStrLn $ unlines (map (show) $ Map.elems $ elves updatedBattleCave)
+        putStrLn $ unlines (map (show) $ Map.elems $ goblins updatedBattleCave)
+  else do
+    print $ turn + 1
+    putStrLn $ unlines (map (show) $ Map.elems $ elves updatedBattleCave)
+    putStrLn $ unlines (map (show) $ Map.elems $ goblins updatedBattleCave)
+    printCaveConflict updatedBattleCave (turn + 1)
+
+resolveCaveConflict :: BattleCave -> Int -> (Int, Int)
+resolveCaveConflict battleCave turns
+  | allGoblinsOrElvesWereKilled updatedBattleCave = (turns, (calculateEndResult updatedBattleCave turns))
+  | otherwise = resolveCaveConflict updatedBattleCave (turns + 1)
+  where updatedBattleCave = doTurn battleCave
 
 calculateEndResult :: BattleCave -> Int -> Int
 calculateEndResult battleCave turns = turns * (List.sum $ map(hitPoints) $ Map.elems $ Map.union (elves battleCave) (goblins battleCave))
@@ -38,7 +51,8 @@ doNpcTurns (currentNpcCoordinate:otherNpcs) battleCave = do
       if battleWasDone then doNpcTurns otherNpcs (addNpcToBattleCave currentNpc battleCaveAfterBattle)
       else do
         let updatedNpc = moveNpc currentNpc battleCaveWithoutNpc
-        let updatedBattleCave = addNpcToBattleCave updatedNpc battleCaveWithoutNpc
+        let (_, battleCaveAfterBattle) = attackAdjacentEnemy updatedNpc battleCaveWithoutNpc
+        let updatedBattleCave = addNpcToBattleCave updatedNpc battleCaveAfterBattle
         doNpcTurns otherNpcs updatedBattleCave
 
 allGoblinsOrElvesWereKilled battleCave = Map.size (elves battleCave) == 0 || Map.size (goblins battleCave) == 0

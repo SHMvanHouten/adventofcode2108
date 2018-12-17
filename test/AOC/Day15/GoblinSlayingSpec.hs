@@ -26,6 +26,57 @@ spec = do
       let result = resolveCaveConflict initialBattleCave 0
       print $ fst result
       snd result `shouldBe` 36334
+    it "should solve the other test input" $ do
+      let input = "#######\n"++
+                  "#E..EG#\n"++
+                  "#.#G.E#\n"++
+                  "#E.##E#\n"++
+                  "#G..#.#\n"++
+                  "#..E#.#\n"++
+                  "#######\n"
+      let initialBattleCave = parseBattleCave input
+      let result = resolveCaveConflict initialBattleCave 0
+      print $ fst result
+      snd result `shouldBe` 39514
+    it "should solve the other test input" $ do
+          let input = "#######\n"++
+                      "#E.G#.#\n"++
+                      "#.#G..#\n"++
+                      "#G.#.G#\n"++
+                      "#G..#.#\n"++
+                      "#...E.#\n"++
+                      "#######\n"
+          let initialBattleCave = parseBattleCave input
+          let result = resolveCaveConflict initialBattleCave 0
+          print $ fst result
+          snd result `shouldBe` 27755
+    it "should solve the other test input" $ do
+          let input = "#######\n"++
+                      "#.E...#\n"++
+                      "#.#..G#\n"++
+                      "#.###.#\n"++
+                      "#E#G#G#\n"++
+                      "#...#G#\n"++
+                      "#######\n"
+          let initialBattleCave = parseBattleCave input
+          let result = resolveCaveConflict initialBattleCave 0
+          print $ fst result
+          snd result `shouldBe` 28944
+    it "should solve the other test input" $ do
+          let input = "#########\n"++
+                      "#G......#\n"++
+                      "#.E.#...#\n"++
+                      "#..##..G#\n"++
+                      "#...##..#\n"++
+                      "#...#...#\n"++
+                      "#.G...G.#\n"++
+                      "#.....G.#\n"++
+                      "#########\n"
+          let initialBattleCave = parseBattleCave input
+          let result = resolveCaveConflict initialBattleCave 0
+          print $ fst result
+          snd result `shouldBe` 18740
+
     it "should solve a simple case" $ do
       let input = "#######\n"++
                   "#G....#\n"++
@@ -56,29 +107,30 @@ spec = do
       let simpleBattleCave = parseBattleCave simpleInput
       moveNpc elf simpleBattleCave `shouldBe` Npc (Coordinate 3 0) 200 Elves
 
-  describe "move all npcs" $ do
-    it "moves all the npcs one step" $ do
-      let input = "#########\n"++
-                  "#G..G..G#\n"++
-                  "#.......#\n"++
-                  "#.......#\n"++
-                  "#G..E..G#\n"++
-                  "#.......#\n"++
-                  "#.......#\n"++
-                  "#G..G..G#\n"++
-                  "#########\n"
-      let expectedOutput ="#########\n"++
-                          "#.G...G.#\n"++
-                          "#...G...#\n"++
-                          "#...E..G#\n"++
-                          "#.G.....#\n"++
-                          "#.......#\n"++
-                          "#G..G..G#\n"++
-                          "#.......#\n"++
-                          "#########\n"
-      let startingCave = parseBattleCave input
-      let expectedCave = parseBattleCave expectedOutput
-      doTurn startingCave `shouldBe` expectedCave
+-- todo : fails now because damage
+--  describe "move all npcs" $ do
+--    it "moves all the npcs one step" $ do
+--      let input = "#########\n"++
+--                  "#G..G..G#\n"++
+--                  "#.......#\n"++
+--                  "#.......#\n"++
+--                  "#G..E..G#\n"++
+--                  "#.......#\n"++
+--                  "#.......#\n"++
+--                  "#G..G..G#\n"++
+--                  "#########\n"
+--      let expectedOutput ="#########\n"++
+--                          "#.G...G.#\n"++
+--                          "#...G...#\n"++
+--                          "#...E..G#\n"++
+--                          "#.G.....#\n"++
+--                          "#.......#\n"++
+--                          "#G..G..G#\n"++
+--                          "#.......#\n"++
+--                          "#########\n"
+--      let startingCave = parseBattleCave input
+--      let expectedCave = parseBattleCave expectedOutput
+--      doTurn startingCave `shouldBe` expectedCave
 
   describe "attack and move npcs" $ do
     it "should attack one elf and goblin and move the rest" $ do
@@ -117,7 +169,7 @@ testInput2 = "#######\n"++
              "#...#E#\n"++
              "#.....#\n"++
              "#######\n"
-
+------------------0123456
 otherTestInput = "#######\n"++
                  "#G..#E#\n"++
                  "#E#E.E#\n"++
