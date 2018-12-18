@@ -12,12 +12,20 @@ main = hspec spec
 spec :: Spec
 spec = do
 
-  describe "it should solve the challenge part 2" $ do
+  describe "it should solve the challenge part 1" $ do
     it "solves the challenge" $ do
       content <- readFile "resources/input-day16.txt"
       let instructions = parseInput content
       let result = findInstructionsWithMoreThanThreePossibleOpcodes instructions
       length result `shouldBe` 607
+
+  describe "it should match the op codes to operations" $ do
+    it "matches the op codes to operations" $ do
+      content <- readFile "resources/input-day16.txt"
+      let instructions = parseInput content
+      let opCodesToOperation = findOpCodesForOperations instructions
+      let result = map (\x -> (fst x, (name $ snd x))) opCodesToOperation
+      result `shouldBe` [(5,"bani"),(15,"banr"),(7,"setr"),(14,"gtir"),(11,"eqrr"),(6,"gtri"),(8,"gtrr"),(10,"eqir"),(13,"eqri"),(9,"seti"),(2,"addi"),(3,"muli"),(0,"bori"),(1,"borr"),(4,"addr"),(12,"mulr")]
 
   describe "hasThreeOrMoreOpcodes" $ do
     it "matches three op codes" $ do

@@ -2,23 +2,28 @@ module AOC.Day16.Registers where
 
 import qualified Data.List.Split as Split
 import qualified Data.Bits as Bits
-import Data.Map (Map, (!), fromList, insert, fromListWith, map)
+import Data.Map (Map, (!), fromList, insert, fromListWith, map, keys)
 import qualified Data.List as List
+import qualified Data.Set as Set
 
-matchOpCodeToOperation :: [Int] -> Map Int [Operation] -> [(Int, Operation)] -> [Int] -> [(Int, Operation)]
+findOpCodesForOperations instructions = do
+  let groupedOpCodesToOperation = groupOpCodeByOperations instructions
+  matchOpCodeToOperation (keys groupedOpCodesToOperation) groupedOpCodesToOperation [] []
+
+matchOpCodeToOperation :: [Int] -> Map Int (Set.Set Operation) -> [(Int, Operation)] -> [Int] -> [(Int, Operation)]
 matchOpCodeToOperation [] opCodeToOperations matches unmatchedCodes = matchOpCodeToOperation unmatchedCodes opCodeToOperations matches unmatchedCodes
 matchOpCodeToOperation (opCode:opCodes) opCodeToOperations matches unmatchedCodes
   | (length matches) == (length allOperations) = matches
-  | (length $ opCodeToOperations!opCode) == 1 = do
+  | (Set.size $ opCodeToOperations!opCode) == 1 = do
     let operation = opCodeToOperations!opCode
-    matchOpCodeToOperation opCodes (Data.Map.map (\x -> List.delete ((operation)!!1) x) opCodeToOperations) ((opCode, (operation!!0)):matches) unmatchedCodes
+    matchOpCodeToOperation opCodes (Data.Map.map (\x -> Set.delete (Set.elemAt 0 operation) x) opCodeToOperations) ((opCode, (Set.elemAt 0 operation)):matches) unmatchedCodes
   | otherwise = matchOpCodeToOperation opCodes opCodeToOperations matches (opCode:unmatchedCodes)
 
 groupOpCodeByOperations instructions = do
   let opCodeByOperations = Prelude.map (getOpCodeToOperations) instructions
-  fromListWith (++) opCodeByOperations
+  fromListWith (Set.union) opCodeByOperations
 
-getOpCodeToOperations :: Instruction -> (Int, [Operation])
+getOpCodeToOperations :: Instruction -> (Int, Set.Set Operation)
 getOpCodeToOperations instruction = (identity $ action $ instruction, findMatchingOperations instruction)
 
 --------------------------
@@ -30,8 +35,8 @@ findInstructionsWithMoreThanThreePossibleOpcodes instructions = filter (hasThree
 
 hasThreeOrMoreOpcodes instruction = (length $ findMatchingOperations instruction) >= 3
 
-findMatchingOperations :: Instruction -> [Operation]
-findMatchingOperations instruction = filter (\op -> actionOnBeforeMatchesAfter instruction (function op)) allOperationObjects
+findMatchingOperations :: Instruction -> Set.Set Operation
+findMatchingOperations instruction = Set.fromList $ filter (\op -> actionOnBeforeMatchesAfter instruction (function op)) allOperationObjects
 
 actionOnBeforeMatchesAfter :: Instruction -> OperationFunction -> Bool
 actionOnBeforeMatchesAfter instruction operation = ((before instruction) `operation` (action instruction)) == (after instruction)
@@ -140,6 +145,8 @@ instance Eq Operation where
     (Operation name1 _) == (Operation name2 _) = name1 == name2
 instance Show Operation where
   show (Operation name _) = show name
+instance Ord Operation where
+  compare (Operation name1 _) (Operation name2 _) = compare name1 name2
 
 parseInt str = read str :: Int
 
