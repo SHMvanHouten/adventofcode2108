@@ -2,15 +2,24 @@ module AOC.Day16.Registers where
 
 import qualified Data.List.Split as Split
 import qualified Data.Bits as Bits
-import Data.Map (Map, (!), fromList, insert)
+import Data.Map (Map, (!), fromList, insert, fromListWith, map)
 import qualified Data.List as List
 
+matchOpCodeToOperation :: [Int] -> Map Int [Operation] -> [(Int, Operation)] -> [Int] -> [(Int, Operation)]
+matchOpCodeToOperation [] opCodeToOperations matches unmatchedCodes = matchOpCodeToOperation unmatchedCodes opCodeToOperations matches unmatchedCodes
+matchOpCodeToOperation (opCode:opCodes) opCodeToOperations matches unmatchedCodes
+  | (length matches) == (length allOperations) = matches
+  | (length $ opCodeToOperations!opCode) == 1 = do
+    let operation = opCodeToOperations!opCode
+    matchOpCodeToOperation opCodes (Data.Map.map (\x -> List.delete ((operation)!!1) x) opCodeToOperations) ((opCode, (operation!!0)):matches) unmatchedCodes
+  | otherwise = matchOpCodeToOperation opCodes opCodeToOperations matches (opCode:unmatchedCodes)
 
-groupOperationsByOpCode instructions = do
-  let opCodeByOperations = map (getOpCodeToOperations) instructions
-  ""
+groupOpCodeByOperations instructions = do
+  let opCodeByOperations = Prelude.map (getOpCodeToOperations) instructions
+  fromListWith (++) opCodeByOperations
 
-getOpCodeToOperations instruction = (identity $ action $ instruction, findMatchingOperations)
+getOpCodeToOperations :: Instruction -> (Int, [Operation])
+getOpCodeToOperations instruction = (identity $ action $ instruction, findMatchingOperations instruction)
 
 --------------------------
 -- PART 1
@@ -21,8 +30,10 @@ findInstructionsWithMoreThanThreePossibleOpcodes instructions = filter (hasThree
 
 hasThreeOrMoreOpcodes instruction = (length $ findMatchingOperations instruction) >= 3
 
-findMatchingOperations instruction = filter (\op -> actionOnBeforeMatchesAfter instruction op) allOperations
+findMatchingOperations :: Instruction -> [Operation]
+findMatchingOperations instruction = filter (\op -> actionOnBeforeMatchesAfter instruction (function op)) allOperationObjects
 
+actionOnBeforeMatchesAfter :: Instruction -> OperationFunction -> Bool
 actionOnBeforeMatchesAfter instruction operation = ((before instruction) `operation` (action instruction)) == (after instruction)
 ----------------------
 --  OPERATIONS
@@ -89,14 +100,14 @@ toAction rawAction = do
   Action (read (splitAction!!0) :: Int) (read (splitAction!!1) :: Int) (read (splitAction!!2) :: Int) (read (splitAction!!3) :: Int)
 
 toDeviceState rawState = do
-  let aThroughD = zip [0..] $ map (parseInt)$ Split.splitOn ", " $ init $ (Split.splitOn "[" rawState)!!1
+  let aThroughD = zip [0..] $ Prelude.map (parseInt)$ Split.splitOn ", " $ init $ (Split.splitOn "[" rawState)!!1
   fromList [(aThroughD!!0), (aThroughD!!1), (aThroughD!!2), (aThroughD!!3)]
 
 parseInput :: String -> [Instruction]
 parseInput rawInput = do
   let (rawInstructions, rawTestProgram) = splitIntoTwo rawInput
   let rawInstructionsSplit = Split.splitOn "\n\n" rawInstructions
-  map (toInstruction) rawInstructionsSplit
+  Prelude.map (toInstruction) rawInstructionsSplit
 
 splitIntoTwo rawInput = do
   let splitList = Split.splitOn "\n\n\n" rawInput
@@ -112,10 +123,40 @@ data Action = Action {
 type Register = Int
 type Registers = Map Int Register
 
+type OperationFunction = Registers -> Action -> Registers
+
 data Instruction = Instruction {
   before :: Registers,
   action :: Action,
   after :: Registers
 } deriving(Show, Eq)
 
+data Operation = Operation {
+  name :: String,
+  function :: OperationFunction
+}
+
+instance Eq Operation where
+    (Operation name1 _) == (Operation name2 _) = name1 == name2
+instance Show Operation where
+  show (Operation name _) = show name
+
 parseInt str = read str :: Int
+
+allOperationObjects :: [Operation]
+allOperationObjects = [(Operation "addr" addr),
+                        (Operation "addi" addi),
+                        (Operation "mulr" mulr),
+                        (Operation "muli" muli),
+                        (Operation "banr" banr),
+                        (Operation "bani" bani),
+                        (Operation "borr" borr),
+                        (Operation "bori" bori),
+                        (Operation "setr" setr),
+                        (Operation "seti" seti),
+                        (Operation "gtir" gtir),
+                        (Operation "gtri" gtri),
+                        (Operation "gtrr" gtrr),
+                        (Operation "eqir" eqir),
+                        (Operation "eqri" eqri),
+                        (Operation "eqrr" eqrr)]
