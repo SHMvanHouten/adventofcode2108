@@ -12,6 +12,12 @@ main = hspec spec
 spec :: Spec
 spec = do
 
+  describe "challenge part 2" $ do
+    it "solves challenge part 2" $ do
+      content <- readFile "resources/input-day16.txt"
+      let result = runProgram content
+      result!0 `shouldBe` 577
+
   describe "it should solve the challenge part 1" $ do
     it "solves the challenge" $ do
       content <- readFile "resources/input-day16.txt"

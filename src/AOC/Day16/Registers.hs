@@ -6,6 +6,22 @@ import Data.Map (Map, (!), fromList, insert, fromListWith, map, keys)
 import qualified Data.List as List
 import qualified Data.Set as Set
 
+initialRegisters = fromList [(0, 0),(1, 0), (2, 0), (3, 0)]
+
+runProgram :: String -> Registers
+runProgram rawInstructions = do
+  let (instructions, actions) = parseInputForPart2 rawInstructions
+  let opCodesToOperation = fromList $ findOpCodesForOperations instructions
+  runAction initialRegisters actions opCodesToOperation
+
+runAction :: Registers -> [Action] -> Map Int Operation -> Registers
+runAction valueBefore [] _ = valueBefore
+runAction valueBefore (action:actions) opCodesToOperation = do
+  let operation = function $ opCodesToOperation!(identity action)
+  let valueAfter = operation valueBefore action
+  runAction valueAfter actions opCodesToOperation
+
+
 findOpCodesForOperations instructions = do
   let groupedOpCodesToOperation = groupOpCodeByOperations instructions
   matchOpCodeToOperation (keys groupedOpCodesToOperation) groupedOpCodesToOperation [] []
@@ -43,8 +59,6 @@ actionOnBeforeMatchesAfter instruction operation = ((before instruction) `operat
 ----------------------
 --  OPERATIONS
 ----------------------
-allOperations = [addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtri, gtrr, eqir, eqri, eqrr]
-
 addr :: Registers -> Action -> Registers
 addr registers action = doOperationToRegisters registers action (+)
 addi registers action = doOperationToRegisterAndValue registers action (+)
@@ -115,8 +129,19 @@ parseInput rawInput = do
   Prelude.map (toInstruction) rawInstructionsSplit
 
 splitIntoTwo rawInput = do
-  let splitList = Split.splitOn "\n\n\n" rawInput
+  let splitList = Split.splitOn "\n\n\n\n" rawInput
   (splitList!!0, splitList!!1)
+
+parseInputForPart2 :: String -> ([Instruction], [Action])
+parseInputForPart2 rawInput = do
+  let instructions = parseInput rawInput
+  let rawProgram = snd $ splitIntoTwo rawInput
+  (instructions, rawProgramToActions rawProgram)
+
+rawProgramToActions :: String -> [Action]
+rawProgramToActions rawProgram = do
+  let actionLines = lines rawProgram
+  Prelude.map (toAction) actionLines
 
 data Action = Action {
   identity::Int,
@@ -167,3 +192,5 @@ allOperationObjects = [(Operation "addr" addr),
                         (Operation "eqir" eqir),
                         (Operation "eqri" eqri),
                         (Operation "eqrr" eqrr)]
+
+allOperations = [addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtri, gtrr, eqir, eqri, eqrr]
