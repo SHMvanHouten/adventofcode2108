@@ -8,17 +8,55 @@ import qualified Data.List as List
 import Data.Traversable (fmapDefault)
 import Data.Maybe
 
+printBattleCave battleCave turn = do
+    let width = getCaveWidth (walls battleCave)
+    let height = getCaveHeight (walls battleCave)
+    print turn
+    printLines height width battleCave
+
+printLines [] _ _ = print ",   "
+printLines (y:ys) width battleCave = do
+  print $ buildLine width y battleCave []
+  printLines ys width battleCave
+
+buildLine width y battleCave npcs = do
+  let gridLine = map (\x -> toChar x y battleCave) width
+  let elves = map (\x -> getElf x y battleCave) $ filter (\x -> isElf x y battleCave) width
+  let goblins = map (\x -> getGoblin x y battleCave) $ filter (\x -> isGoblin x y battleCave) width
+  gridLine ++ " " ++ (show elves) ++ (show goblins)
+
+getElf x y battleCave = (elves battleCave) Map.! (Coordinate x y)
+
+getGoblin x y battleCave = (goblins battleCave) Map.! (Coordinate x y)
+
+isElf x y battleCave = (Map.member coordinate (elves battleCave))
+  where coordinate = Coordinate x y
+
+isGoblin x y battleCave = (Map.member coordinate (goblins battleCave))
+  where coordinate = Coordinate x y
+
+toChar x y battleCave
+  | Set.member coordinate (walls battleCave) = '#'
+  | Map.member coordinate (elves battleCave) = 'E'
+  | Map.member coordinate (goblins battleCave) = 'G'
+  | otherwise = '.'
+  where coordinate = Coordinate x y
+
+getCaveWidth walls = do
+  let xes = Set.map (x') walls
+  [(minimum xes)..(maximum xes)]
+
+getCaveHeight walls = do
+  let ys = Set.map (y') walls
+  [(minimum ys)..(maximum ys)]
+
 printCaveConflict :: BattleCave -> Int -> IO ()
 printCaveConflict battleCave turn = do
   let updatedBattleCave = doTurn battleCave
   if allGoblinsOrElvesWereKilled updatedBattleCave then do
-        print $ turn + 1
-        putStrLn $ unlines (map (show) $ Map.elems $ elves updatedBattleCave)
-        putStrLn $ unlines (map (show) $ Map.elems $ goblins updatedBattleCave)
+        printBattleCave updatedBattleCave (turn + 1)
   else do
-    print $ turn + 1
-    putStrLn $ unlines (map (show) $ Map.elems $ elves updatedBattleCave)
-    putStrLn $ unlines (map (show) $ Map.elems $ goblins updatedBattleCave)
+    printBattleCave updatedBattleCave (turn + 1)
     printCaveConflict updatedBattleCave (turn + 1)
 
 findFirstTimeAllElvesSurvive :: String -> Int -> (Int, Int)
@@ -72,12 +110,12 @@ allGoblinsOrElvesWereKilled battleCave = Map.size (elves battleCave) == 0 || Map
 
 attackAdjacentEnemy :: Npc -> BattleCave -> (BattleWasDone, BattleCave)
 attackAdjacentEnemy npc battleCave
-  | species npc == Elves = do
+  | species npc == Elf = do
     let enemies = goblins battleCave
     let (battleWasDone, updatedEnemies) = attackWeakestEnemyNextToNpc npc enemies
     if battleWasDone then (True, BattleCave (walls battleCave) (elves battleCave) updatedEnemies)
     else (False, battleCave)
-  | species npc == Goblins = do
+  | species npc == Goblin = do
     let enemies = elves battleCave
     let (battleWasDone, updatedEnemies) = attackWeakestEnemyNextToNpc npc enemies
     if battleWasDone then (True, BattleCave (walls battleCave) updatedEnemies (goblins battleCave))
@@ -110,8 +148,8 @@ doDamageToEnemy :: Npc -> Int -> Npc
 doDamageToEnemy enemy damage = Npc (coordinate enemy) (hitPoints enemy - damage) (species enemy) (attackPower enemy)
 
 addNpcToBattleCave npc battleCave
-  | species npc == Elves = BattleCave (walls battleCave) (Map.insert (coordinate npc) npc (elves battleCave)) (goblins battleCave)
-  | species npc == Goblins = BattleCave (walls battleCave) (elves battleCave) (Map.insert (coordinate npc) npc (goblins battleCave))
+  | species npc == Elf = BattleCave (walls battleCave) (Map.insert (coordinate npc) npc (elves battleCave)) (goblins battleCave)
+  | species npc == Goblin = BattleCave (walls battleCave) (elves battleCave) (Map.insert (coordinate npc) npc (goblins battleCave))
 
 getAndRemoveCurrentNpcFromBattleCave :: Coordinate -> BattleCave -> (Maybe Npc, BattleCave)
 getAndRemoveCurrentNpcFromBattleCave coordinate battleCave
@@ -119,12 +157,12 @@ getAndRemoveCurrentNpcFromBattleCave coordinate battleCave
   | coordinate `Map.member` (elves battleCave) = ((Just $ (elves battleCave) Map.! coordinate), BattleCave (walls battleCave) (Map.delete coordinate (elves battleCave)) (goblins battleCave))
   | otherwise = (Nothing, battleCave)
 
-orderNpcs :: Map.Map Coordinate Elf -> Map.Map Coordinate Goblin -> [Coordinate]
+orderNpcs :: Elves -> Goblins -> [Coordinate]
 orderNpcs elves goblins = List.sort ((Map.keys elves) ++ (Map.keys goblins))
 
 moveNpc :: Npc -> BattleCave -> Npc
 moveNpc npc battleCave = do
-  if species npc == Elves
+  if species npc == Elf
     then do
       let shortestPath = findShortestPathToOpponent npc (Set.union (walls battleCave) (Set.fromList (Map.keys (elves battleCave)))) (Set.fromList $ Map.keys $ goblins battleCave)
       if isNothing shortestPath then npc
@@ -188,15 +226,15 @@ parseChar [] _ _ _ battleCave = battleCave
 parseChar (char:chars) x y elfPower battleCave
   | char == '.' = parseChar chars (x + 1) y elfPower battleCave
   | char == '#' = parseChar chars (x + 1) y elfPower (BattleCave (Set.insert currentCoordinate (walls battleCave)) (elves battleCave) (goblins battleCave))
-  | char == 'E' = parseChar chars (x + 1) y elfPower (BattleCave (walls battleCave) (Map.insert currentCoordinate (Npc currentCoordinate 200 Elves elfPower) (elves battleCave)) (goblins battleCave))
-  | char == 'G' = parseChar chars (x + 1) y elfPower (BattleCave (walls battleCave) (elves battleCave) (Map.insert currentCoordinate (Npc currentCoordinate 200 Goblins 3) (goblins battleCave)))
+  | char == 'E' = parseChar chars (x + 1) y elfPower (BattleCave (walls battleCave) (Map.insert currentCoordinate (Npc currentCoordinate 200 Elf elfPower) (elves battleCave)) (goblins battleCave))
+  | char == 'G' = parseChar chars (x + 1) y elfPower (BattleCave (walls battleCave) (elves battleCave) (Map.insert currentCoordinate (Npc currentCoordinate 200 Goblin 3) (goblins battleCave)))
   | otherwise = error ("unknown char" ++ (show char))
   where currentCoordinate = Coordinate x y
 
 data BattleCave =  BattleCave {
   walls :: Set.Set Coordinate,
-  elves :: Map.Map Coordinate Elf,
-  goblins :: Map.Map Coordinate Goblin
+  elves :: Elves,
+  goblins :: Goblins
 } deriving (Show, Eq)
 
 data Npc = Npc {
@@ -204,15 +242,15 @@ data Npc = Npc {
   hitPoints :: Int,
   species :: Species,
   attackPower :: Int
-} deriving (Show, Eq)
+} deriving (Eq)
+
+instance Show Npc where
+  show (Npc _ hitPoints species _) = "hp" ++ (show hitPoints) ++ " " ++ (show species)
 
 instance Ord Npc where
   compare (Npc c1 hp1 _ _) (Npc c2 hp2 _ _)
     | hp1 == hp2 = compare c1 c2
     | otherwise = compare hp1 hp2
-
-type Elf = Npc
-type Goblin = Npc
 
 data Path = Path {
   currentPosition :: Coordinate,
@@ -224,7 +262,10 @@ instance Ord Path where
     | (Seq.length path1) == (Seq.length path2) = compare pos1 pos2
     | otherwise = compare (Seq.length path1) (Seq.length path2)
 
-data Species = Elves | Goblins deriving (Show, Eq)
+data Species = Elf | Goblin deriving (Show, Eq)
+
+type Elves = Map.Map Coordinate Npc
+type Goblins = Map.Map Coordinate Npc
 
 emptyBattleCave = BattleCave Set.empty Map.empty Map.empty
 
