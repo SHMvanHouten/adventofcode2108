@@ -30,3 +30,6 @@ toLine y xRange= map (\x -> Coordinate x y) xRange
 
 getSurroundingCoordinates :: Coordinate -> [Coordinate]
 getSurroundingCoordinates coordinate = [moveUp coordinate, moveLeft coordinate, moveRight coordinate, moveDown coordinate]
+
+coordinatesForColumn :: Int -> Int -> Int -> [Coordinate]
+coordinatesForColumn x minY maxY = getAllCoordinatesBetween x minY x maxY
