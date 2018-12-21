@@ -2,22 +2,29 @@ module AOC.Day17.ReservoirResearch where
 
 import qualified Data.List.Split as Split
 import AOC.Util.Coordinate
-import Data.Set (Set, fromList, member, map, union, empty, insert, filter, unions, toList)
+import Data.Set (Set, fromList, member, map, union, empty, insert, filter, unions, toList, size)
 import Data.Maybe (fromJust, isNothing)
 
 springLocation = Coordinate 500 0
 
+-- we know there are no containers with holes (at least none that are inside
 
-locateAllWetSandFaster :: Coordinate -> Set Coordinate -> Set Coordinate
+
+locateAllWetSandFaster :: Coordinate -> ClayCoordinates -> Set Coordinate
 locateAllWetSandFaster spring clayCoordinates = do
     let wetSands = locateSlicedWetSands [spring] clayCoordinates bottomY []
     Data.Set.filter (\c -> (y' c) >= topY) wetSands
   where bottomY = maximum $ Data.Set.map (y') clayCoordinates
         topY = minimum $ Data.Set.map (y') clayCoordinates
 
+locateWetSandsOfSlice :: [Coordinate] -> ClayCoordinates -> Int -> WetSand
+locateWetSandsOfSlice origins clayCoordinates bottomY = unions $ Prelude.map (\c -> locateAllWetSand c clayCoordinates bottomY) origins
+
 locateSlicedWetSands :: [Coordinate] -> ClayCoordinates -> Int -> [WetSand] -> WetSand
 locateSlicedWetSands origins clayCoordinates bottomY wetSands
-  | endOfSlice < bottomY = unions $ Prelude.map (\c -> locateAllWetSand c clayCoordinates bottomY) origins
+  | endOfSlice > bottomY = do
+    let nextWetSands = Prelude.map (\c -> locateAllWetSand c clayCoordinates bottomY) origins
+    unions (nextWetSands ++ wetSands)
   | otherwise = do
     let nextWetSands = unions $ Prelude.map (\c -> locateAllWetSand c clayCoordinates endOfSlice) origins
     let nextOrigins = findNextOrigins nextWetSands
@@ -106,3 +113,21 @@ type Move = Coordinate -> Coordinate
 
 type ClayCoordinates = Set Coordinate
 type WetSand = Set Coordinate
+
+-- some random crap I tried
+--getWetSandsCount origin clayCoordinates = locateWetSandPostHaste [moveDown origin] clayCoordinates bottomY 0
+--  where bottomY = maximum $ Data.Set.map (y') clayCoordinates
+--
+--locateWetSandPostHaste :: [Coordinate] -> ClayCoordinates -> Int -> Int -> Int
+--locateWetSandPostHaste origins clayCoordinates bottomY sandsCount
+--  | endOfSlice > bottomY = sandsCount + (size $ locateWetSandsOfSlice origins clayCoordinates bottomY)
+--  | otherwise = do
+--    let nextWetSands = locateWetSandsOfSlice origins clayCoordinates endOfSlice
+--    let nextOrigins = findNextOrigins nextWetSands
+--    locateWetSandPostHaste nextOrigins clayCoordinates endOfSlice (sandsCount + size nextWetSands)
+--  where endOfSlice = locatePlaceToSlice (y' (origins!!0) + 5) clayCoordinates
+--
+--locatePlaceToSlice currentY clayCoordinates
+--  | currentY `member` Data.Set.map (y') clayCoordinates = currentY
+--  | otherwise = locatePlaceToSlice (currentY + 1) clayCoordinates
+--

@@ -16,12 +16,11 @@ spec = do
 
   describe "challenge part 1" $ do
     it "solves challenge part 1" $ do
---      pending
       content <- readFile "resources/input-day17.txt"
       let clayCoordinates = parseInput content
       let wetSand = locateAllWetSandFaster springLocation clayCoordinates
       printMap clayCoordinates wetSand
-      Set.size wetSand `shouldBe` 123
+      Set.size wetSand `shouldBe` 36787
 
   describe "solve test input" $ do
     it "solves the test input" $ do
@@ -52,7 +51,7 @@ spec = do
       trickleDown (Coordinate 1 0) clayCoords Set.empty 3 `shouldBe` expectedResult
 
   describe "fill up basin and overflow" $ do
-    it "should fill up the basin adn overflow" $ do
+    it "should fill up the basin and overflow" $ do
       -- ...+....
       -- .#----|.
       -- .#---#|.
@@ -61,8 +60,6 @@ spec = do
       let clayCoords = Set.fromList [(Coordinate 1 1), (Coordinate 1 2), (Coordinate 5 2), (Coordinate 1 3), (Coordinate 2 3), (Coordinate 3 3), (Coordinate 4 3), (Coordinate 5 3)]
       let spring = Coordinate 3 0
       trickleDown spring clayCoords Set.empty 5 `shouldBe` Set.fromList [(Coordinate 3 0),(Coordinate 2 1),(Coordinate 3 1),(Coordinate 4 1),(Coordinate 5 1),(Coordinate 6 1),(Coordinate 2 2),(Coordinate 3 2),(Coordinate 4 2),(Coordinate 6 2),(Coordinate 6 3),(Coordinate 6 4),(Coordinate 6 5)]
-
-      pending
 
   describe "parse input" $ do
     it "should parse the input into a lovely little picture" $ do
