@@ -19,7 +19,7 @@ spec = do
 --      pending
       content <- readFile "resources/input-day17.txt"
       let clayCoordinates = parseInput content
-      let wetSand = locateAllWetSand springLocation clayCoordinates
+      let wetSand = locateAllWetSandFaster springLocation clayCoordinates
       printMap clayCoordinates wetSand
       Set.size wetSand `shouldBe` 123
 
@@ -34,7 +34,7 @@ spec = do
                       "x=504, y=10..13\n"++
                       "y=13, x=498..504\n"
       let clayCoordinates = parseInput testInput
-      let wetSand = locateAllWetSand springLocation clayCoordinates
+      let wetSand = locateAllWetSandFaster springLocation clayCoordinates
       Set.size wetSand `shouldBe` 57
 
   describe "the water drops off the map" $ do
@@ -79,5 +79,5 @@ spec = do
                     "x=14, y=8..10\n"++
                     "y=10, x=8..13\n"
       let clayCoordinates = parseInput content
-      let wetSand = locateAllWetSand (Coordinate 15 0) clayCoordinates
+      let wetSand = locateAllWetSand (Coordinate 15 0) clayCoordinates 13
       printMap clayCoordinates wetSand

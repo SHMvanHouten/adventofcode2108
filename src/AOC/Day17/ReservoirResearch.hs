@@ -2,17 +2,35 @@ module AOC.Day17.ReservoirResearch where
 
 import qualified Data.List.Split as Split
 import AOC.Util.Coordinate
-import Data.Set (Set, fromList, member, map, union, empty, insert, filter)
+import Data.Set (Set, fromList, member, map, union, empty, insert, filter, unions, toList)
 import Data.Maybe (fromJust, isNothing)
 
 springLocation = Coordinate 500 0
 
-locateAllWetSand :: Coordinate -> Set Coordinate -> Set Coordinate
-locateAllWetSand spring clayCoordinates = do
-  let wetSand = trickleDown spring clayCoordinates empty bottomY
-  Data.Set.filter (\c -> (y' c) >= topY) wetSand
+
+locateAllWetSandFaster :: Coordinate -> Set Coordinate -> Set Coordinate
+locateAllWetSandFaster spring clayCoordinates = do
+    let wetSands = locateSlicedWetSands [spring] clayCoordinates bottomY []
+    Data.Set.filter (\c -> (y' c) >= topY) wetSands
   where bottomY = maximum $ Data.Set.map (y') clayCoordinates
         topY = minimum $ Data.Set.map (y') clayCoordinates
+
+locateSlicedWetSands :: [Coordinate] -> ClayCoordinates -> Int -> [WetSand] -> WetSand
+locateSlicedWetSands origins clayCoordinates bottomY wetSands
+  | endOfSlice < bottomY = unions $ Prelude.map (\c -> locateAllWetSand c clayCoordinates bottomY) origins
+  | otherwise = do
+    let nextWetSands = unions $ Prelude.map (\c -> locateAllWetSand c clayCoordinates endOfSlice) origins
+    let nextOrigins = findNextOrigins nextWetSands
+    locateSlicedWetSands nextOrigins clayCoordinates bottomY (nextWetSands:wetSands)
+  where endOfSlice = y' (origins!!0) + 100
+
+findNextOrigins wetSands = do
+  let bottomY = maximum $ Data.Set.map (y') wetSands
+  toList $ Data.Set.filter (\c -> y' c == bottomY) wetSands
+
+locateAllWetSand :: Coordinate -> Set Coordinate -> Int -> Set Coordinate
+locateAllWetSand spring clayCoordinates bottomY = do
+  trickleDown spring clayCoordinates empty bottomY
 
 trickleDown :: Coordinate -> Set Coordinate -> Set Coordinate -> Int -> Set Coordinate
 trickleDown origin clayCoordinates wetSand bottomY
@@ -86,4 +104,5 @@ toCharRepresentation x y clayCoordinates wetSand
 
 type Move = Coordinate -> Coordinate
 
-type Y = Int
+type ClayCoordinates = Set Coordinate
+type WetSand = Set Coordinate
