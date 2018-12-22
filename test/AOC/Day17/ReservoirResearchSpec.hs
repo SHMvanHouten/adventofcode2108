@@ -6,21 +6,53 @@ import Test.QuickCheck
 import AOC.Day17.ReservoirResearch
 import AOC.Util.Coordinate
 import qualified Data.Set as Set
+import qualified Data.List as List
 
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
 spec = do
--- 12160
+
+  describe "is water contained" $ do
+    it "should say the water is contained" $ do
+      let clay = Set.fromList [(Coordinate 0 0), (Coordinate 2 0)]
+      let wetSand =  [(Coordinate 1 0)]
+      List.reverse (findStillWater wetSand clay) `shouldBe` [(Coordinate 1 0)]
+
+  describe "is water contained" $ do
+      it "should say the water is contained" $ do
+        let clay = Set.fromList [(Coordinate 0 0)]
+        let wetSand =  [(Coordinate 1 0)]
+        List.reverse (findStillWater wetSand clay) `shouldBe` []
+
+  describe "is water contained" $ do
+      it "should say the water is contained" $ do
+        let clay = Set.fromList [(Coordinate 0 0), (Coordinate 5 0)]
+        let wetSand =  [(Coordinate 1 0), (Coordinate 2 0), (Coordinate 3 0), (Coordinate 4 0)]
+        List.reverse (findStillWater wetSand clay) `shouldBe` [(Coordinate 1 0), (Coordinate 2 0), (Coordinate 3 0), (Coordinate 4 0)]
+
+  describe "is water contained" $ do
+      it "should say some water is contained and some is not" $ do
+        let clay = Set.fromList [(Coordinate 0 0), (Coordinate 3 0)]
+        let wetSand =  [(Coordinate 1 0), (Coordinate 2 0), (Coordinate 4 0)]
+        List.reverse (findStillWater wetSand clay) `shouldBe` [(Coordinate 1 0), (Coordinate 2 0)]
+
+  describe "is water contained" $ do
+      it "should say all water is contained" $ do
+        let clay = Set.fromList [(Coordinate 0 0), (Coordinate 3 0), (Coordinate 5 0)]
+        let wetSand =  [(Coordinate 1 0), (Coordinate 2 0), (Coordinate 4 0)]
+        List.reverse (findStillWater wetSand clay) `shouldBe` [(Coordinate 1 0), (Coordinate 2 0), (Coordinate 4 0)]
 
   describe "challenge part 1" $ do
     it "solves challenge part 1" $ do
       content <- readFile "resources/input-day17.txt"
       let clayCoordinates = parseInput content
       let wetSand = locateAllWetSandFaster springLocation clayCoordinates
-      printMap clayCoordinates wetSand
+      let stillWater = findAllStillWater wetSand clayCoordinates
+--      printMap clayCoordinates wetSand
       Set.size wetSand `shouldBe` 36787
+      length stillWater `shouldBe` 29662
 
   describe "solve test input" $ do
     it "solves the test input" $ do
@@ -34,7 +66,9 @@ spec = do
                       "y=13, x=498..504\n"
       let clayCoordinates = parseInput testInput
       let wetSand = locateAllWetSandFaster springLocation clayCoordinates
+      let stillWater = findAllStillWater wetSand clayCoordinates
       Set.size wetSand `shouldBe` 57
+      length stillWater `shouldBe` 29
 
   describe "the water drops off the map" $ do
     it "fills a single column all the way down to the bottom" $ do

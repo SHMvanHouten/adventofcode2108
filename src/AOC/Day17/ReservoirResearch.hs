@@ -6,9 +6,42 @@ import Data.Set (Set, fromList, member, map, union, empty, insert, filter, union
 import Data.Maybe (fromJust, isNothing)
 
 springLocation = Coordinate 500 0
+soloCoordinate = Coordinate (-100) (-100)
+
+findAllStillWater wetSand clay = concat $ filterStillWater [minY..maxY] wetSand clay []
+  where minY = minimum $ Data.Set.map (y') wetSand
+        maxY = maximum $ Data.Set.map (y') wetSand
 
 -- we know there are no containers with holes (at least none that are inside
+filterStillWater :: [Int] -> WetSand -> ClayCoordinates -> [[Coordinate]] -> [[Coordinate]]
+filterStillWater [] _ _ stillWater = stillWater
+filterStillWater (y:ys) wetSand clay stillWater = do
+  filterStillWater ys wetSand clay (stillWaterLine:stillWater)
+  where wetSandLine = toList $ Data.Set.filter (\c -> (y' c) == y) wetSand
+        stillWaterLine = findStillWater wetSandLine clay
 
+findStillWater :: [Coordinate] -> ClayCoordinates -> [Coordinate]
+findStillWater wetSand clay = concat $ getContainedWetSand wetSand clay []
+
+getContainedWetSand :: [Coordinate] -> ClayCoordinates -> [[Coordinate]] -> [[Coordinate]]
+getContainedWetSand [] clay foundClumps = foundClumps
+getContainedWetSand [x] clay foundClumps
+  | (moveLeft x) `member` clay && (moveRight x) `member` clay = [x]:foundClumps
+getContainedWetSand (x:xs) clay foundClumps
+  | (moveLeft x) `member` clay = do
+    let (newClump, remainingWetSand) = findClump (x:xs) clay []
+    getContainedWetSand remainingWetSand clay (newClump:foundClumps)
+  | otherwise = getContainedWetSand xs clay foundClumps
+
+findClump :: [Coordinate] -> ClayCoordinates -> [Coordinate] -> ([Coordinate], [Coordinate])
+findClump [x] clay foundSoFar
+  | (moveRight x) `member` clay = (x:foundSoFar, [])
+  | otherwise = ([], [])
+findClump (x:xs) clay foundSoFar
+  | nextTile `member` clay = (x:foundSoFar, xs)
+  | nextTile == (head xs) = findClump xs clay (x:foundSoFar)
+  | otherwise  = ([], xs)
+  where nextTile = (moveRight x)
 
 locateAllWetSandFaster :: Coordinate -> ClayCoordinates -> Set Coordinate
 locateAllWetSandFaster spring clayCoordinates = do
@@ -113,21 +146,3 @@ type Move = Coordinate -> Coordinate
 
 type ClayCoordinates = Set Coordinate
 type WetSand = Set Coordinate
-
--- some random crap I tried
---getWetSandsCount origin clayCoordinates = locateWetSandPostHaste [moveDown origin] clayCoordinates bottomY 0
---  where bottomY = maximum $ Data.Set.map (y') clayCoordinates
---
---locateWetSandPostHaste :: [Coordinate] -> ClayCoordinates -> Int -> Int -> Int
---locateWetSandPostHaste origins clayCoordinates bottomY sandsCount
---  | endOfSlice > bottomY = sandsCount + (size $ locateWetSandsOfSlice origins clayCoordinates bottomY)
---  | otherwise = do
---    let nextWetSands = locateWetSandsOfSlice origins clayCoordinates endOfSlice
---    let nextOrigins = findNextOrigins nextWetSands
---    locateWetSandPostHaste nextOrigins clayCoordinates endOfSlice (sandsCount + size nextWetSands)
---  where endOfSlice = locatePlaceToSlice (y' (origins!!0) + 5) clayCoordinates
---
---locatePlaceToSlice currentY clayCoordinates
---  | currentY `member` Data.Set.map (y') clayCoordinates = currentY
---  | otherwise = locatePlaceToSlice (currentY + 1) clayCoordinates
---
