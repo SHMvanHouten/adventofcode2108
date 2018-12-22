@@ -123,22 +123,23 @@ toRange raw = [(read (splitRange!!0) :: Int)..(read (splitRange!!1) :: Int)]
   where rawRange = (Split.splitOn "=" raw)!!1
         splitRange = Split.splitOn ".."rawRange
 
-printMap clayCoordinates wetSand = printLines [(minX - 1)..(maxX + 1)] [minY..maxY] clayCoordinates wetSand
+printMap clayCoordinates wetSand soakedSand = printLines [(minX - 1)..(maxX + 1)] [minY..maxY] clayCoordinates wetSand soakedSand
   where minX = minimum $ Data.Set.map (x') clayCoordinates
         maxX = maximum $ Data.Set.map (x') clayCoordinates
-        minY = minimum $ Data.Set.map (y') clayCoordinates
+        minY = (minimum $ Data.Set.map (y') clayCoordinates) - 1
         maxY = maximum $ Data.Set.map (y') clayCoordinates
 
-printLines xRange [y] clayCoordinates wetSand = printLine xRange y clayCoordinates wetSand
-printLines xRange (y:ys) clayCoordinates wetSand = do
-  printLine xRange y clayCoordinates wetSand
-  printLines xRange ys clayCoordinates wetSand
+printLines xRange [y] clayCoordinates wetSand soakedSand = printLine xRange y clayCoordinates wetSand soakedSand
+printLines xRange (y:ys) clayCoordinates wetSand soakedSand = do
+  printLine xRange y clayCoordinates wetSand soakedSand
+  printLines xRange ys clayCoordinates wetSand soakedSand
 
-printLine xRange y clayCoordinates wetSand = print $ Prelude.map (\x -> toCharRepresentation x y clayCoordinates wetSand) xRange
+printLine xRange y clayCoordinates wetSand soakedSand = print $ Prelude.map (\x -> toCharRepresentation x y clayCoordinates wetSand soakedSand) xRange
 
-toCharRepresentation x y clayCoordinates wetSand
+toCharRepresentation x y clayCoordinates wetSand soakedSand
   | coordinate `member` clayCoordinates = '#'
-  | coordinate `member` wetSand = '-'
+  | coordinate `member` soakedSand = '~'
+  | coordinate `member` wetSand = '|'
   | otherwise = '.'
   where coordinate = Coordinate x y
 

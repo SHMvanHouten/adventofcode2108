@@ -50,7 +50,7 @@ spec = do
       let clayCoordinates = parseInput content
       let wetSand = locateAllWetSandFaster springLocation clayCoordinates
       let stillWater = findAllStillWater wetSand clayCoordinates
---      printMap clayCoordinates wetSand
+      printMap clayCoordinates wetSand (Set.fromList stillWater)
       Set.size wetSand `shouldBe` 36787
       length stillWater `shouldBe` 29662
 
@@ -111,4 +111,5 @@ spec = do
                     "y=10, x=8..13\n"
       let clayCoordinates = parseInput content
       let wetSand = locateAllWetSand (Coordinate 15 0) clayCoordinates 13
-      printMap clayCoordinates wetSand
+      let stillWater = findAllStillWater wetSand clayCoordinates
+      printMap clayCoordinates wetSand (Set.fromList stillWater)
