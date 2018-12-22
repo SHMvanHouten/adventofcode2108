@@ -1,7 +1,7 @@
 module AOC.Day18.Forestry where
 
 import AOC.Util.Coordinate
-import Data.Map (Map, fromList, member, (!), findMin, findMax, empty, elems, fromListWith)
+import Data.Map (Map, fromList, member, (!), findMin, findMax, empty, elems, fromListWith, insert)
 import Data.Maybe (isJust, fromJust)
 import Data.List (groupBy)
 
@@ -12,6 +12,16 @@ getAcreByAcreType acres = fromListWith (++)
                           $ map (\a -> ((acreType a), [a]))
                           $ elems acres
 
+evolveMinutesFaster amount acres previousResults
+  | amount == 0 = acres
+  | otherwise = evolveMinutesFaster amount evolvedAcres updatedResults
+  where (evolvedAcres, updatedResults) = getNextEvolution acres previousResults
+
+getNextEvolution acres previousResults
+  | acres `member` previousResults = (previousResults!acres, previousResults)
+  | otherwise = do
+    let evolvedAcres = evolveMinute acres
+    (evolvedAcres, insert acres evolvedAcres previousResults)
 
 evolveMinutes amount acres
   | amount == 0 = acres
