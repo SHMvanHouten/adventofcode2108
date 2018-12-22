@@ -103,3 +103,9 @@ toChar acre
   | aType == Tree = '|'
   | aType == Lumberyard = '#'
   where aType = acreType acre
+
+printEvolution amount acres
+  | amount == 0 = putStrLn $ drawLumberMap acres
+  | otherwise = do
+      putStrLn $ drawLumberMap acres
+      printEvolution (amount - 1) (evolveMinute acres)

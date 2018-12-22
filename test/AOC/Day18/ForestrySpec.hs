@@ -23,7 +23,7 @@ spec = do
     it "solves the challenge input part 2 " $ do
       challengeInput <- readFile "resources/input-day18.txt"
       let acres = parseInput challengeInput
-      let result = evolveMinutes 10 acres
+      let result = evolveMinutes 1000000000 acres
       treesTimesLumberYards result `shouldBe` 745008
 
   describe "solves the test input" $ do
