@@ -5,6 +5,7 @@ import Test.QuickCheck
 
 import AOC.Day18.Forestry
 import AOC.Util.Coordinate
+import Data.Map (empty)
 
 main :: IO ()
 main = hspec spec
@@ -19,12 +20,22 @@ spec = do
         let result = evolveMinutes 10 acres
         treesTimesLumberYards result `shouldBe` 745008
 
+  describe "the challenge input should repeat every 28 minutes after a while" $ do
+    it "solves the challenge input part 2 " $ do
+      challengeInput <- readFile "resources/input-day18.txt"
+      let acres = parseInput challengeInput
+      let result = evolveMinutes 500 acres
+      result `shouldBe` evolveMinutes 28 result
+
   describe "solves the challenge input part 2" $ do
     it "solves the challenge input part 2 " $ do
       challengeInput <- readFile "resources/input-day18.txt"
       let acres = parseInput challengeInput
-      let result = evolveMinutes 1000000000 acres
-      treesTimesLumberYards result `shouldBe` 745008
+      let result = evolveMinutes 496 acres
+      result `shouldBe` evolveMinutes 1000 acres
+      (1000 - 496) `mod` 28 `shouldBe` 0
+      (1000000000- 496) `mod` 28 `shouldBe` 0
+      treesTimesLumberYards result `shouldBe` 12345
 
   describe "solves the test input" $ do
       it "evolves the test input ten minutes" $ do
