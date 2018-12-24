@@ -19,8 +19,19 @@ spec = do
         let (ipRegister, instructions) = parseRegisterInput input
         let registers = fromList [(0,0), (1,0), (2,0), (3,0), (4,0), (5,0)]
         let result = runTheProgram instructions registers ipRegister
-        print result
+--        printProgram instructions registers ipRegister
         (result!0) `shouldBe` 1152
+
+  describe "solves the challenge input part 2" $ do
+      it "solves the challenge input (where register 0 starts at 1" $ do
+        input <- readFile "resources/input-day19.txt"
+        let (ipRegister, instructions) = parseRegisterInput input
+        let registers = fromList [(0,1), (1,0), (2,0), (3,0), (4,0), (5,0)]
+        printProgram instructions regist?ers ipRegister
+        pending
+--        let result = runTheProgram instructions registers ipRegister
+--        print result
+--        (result!0) `shouldBe` 1152
 
   describe "solves the test input" $ do
       it "solves the test input" $ do
