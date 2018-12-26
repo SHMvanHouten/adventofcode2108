@@ -15,7 +15,29 @@ spec = do
 
   describe "challenge" $ do
     it "solves challenge " $ do
-      pending
+      input <- readFile "resources/input-day20.txt"
+      let result = parseInput input
+      let longestPath = getLongestPath result
+      let printedPath = toPrintablePath longestPath
+      print printedPath
+      Prelude.length printedPath `shouldBe` 4247
+
+  describe "test input" $ do
+    it " solves the first test input" $ do
+      let input = "^ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))$"
+      let result = parseInput input
+      let longestPath = getLongestPath result
+      let printedPath = toPrintablePath longestPath
+      printedPath `shouldBe` "ESSWWNNNENNWWWSSSSENNNE"
+      Prelude.length printedPath `shouldBe` 23
+
+  it " solves the second test input" $ do
+      let input = "^WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))$"
+      let result = parseInput input
+      let longestPath = getLongestPath result
+      let printedPath = toPrintablePath longestPath
+      printedPath `shouldBe` "WSSEESWWWNWNENNEEEENNWSWWNWWSSS"
+      Prelude.length printedPath `shouldBe` 31
 
   describe "simple path" $ do
     it "finds the simple path" $ do
@@ -34,7 +56,12 @@ spec = do
      map (toPrintablePath) result `shouldBe` ["ENWWWNEEE", "ENWWWSSEEE", "ENWWWSSEN"]
 
     it "finds the example routes" $ do
-      --TODO: the empty branches should be halved to cut off the return trip
      let input = "^ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN$"
      let result = parseInput input
-     map (toPrintablePath) result `shouldBe` ["ENNWSWWNEWS", "ENNWSWWSSSEENWNSE", "ENNWSWWSSSEENEESWEN", "ENNWSWWSSSEENEENNN"]
+     map (toPrintablePath) result `shouldBe` ["ENNWSWWNE", "ENNWSWWSSSEENWN", "ENNWSWWSSSEENEESW", "ENNWSWWSSSEENEENNN"]
+
+  describe "halve" $ do
+    it "should halve the string" $ do
+      halve "1234" `shouldBe` "12"
+      halve "123456" `shouldBe` "123"
+

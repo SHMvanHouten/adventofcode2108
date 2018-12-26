@@ -3,6 +3,11 @@ module AOC.Day20.Doors where
 import Data.Sequence
 import AOC.Util.SequenceHelper
 import AOC.Util.Coordinate
+import qualified Data.List as List
+import Data.Function (on)
+
+getLongestPath :: [Path] -> Path
+getLongestPath paths = List.maximumBy (compare `on` Data.Sequence.length) paths
 
 parseInput :: String -> [Path]
 parseInput input = do
@@ -19,12 +24,18 @@ parseRoutes input pathSoFar routes
 
 parseBrackets input pathSoFar routes
   | last branches == [] = do
-    let finishedRoutes = concatMap (\s -> parseRoutes s pathSoFar []) (init branches)
+    let finishedRoutes = map (\p -> cutOffHalfTheAddedPath p (Data.Sequence.length pathSoFar)) $ concatMap (\s -> parseRoutes s pathSoFar []) (init branches)
     let mainRoute = parseRoutes rest pathSoFar []
     routes ++ (finishedRoutes) ++ mainRoute
   | otherwise = routes ++ concatMap (\s -> parseRoutes (s++rest) pathSoFar []) branches
   where (bracketStuff, rest) = findClosingBracket (tail input) [] 1
         branches = findBranches bracketStuff 0 [] []
+
+cutOffHalfTheAddedPath path lengthOfPathUntilBranchedOff = do
+  let lengthToKeep = lengthOfPathUntilBranchedOff + (((Data.Sequence.length path) - lengthOfPathUntilBranchedOff + 1) `div` 2)
+  Data.Sequence.take lengthToKeep path
+
+halve string = List.take ((List.length string + 1) `div` 2) string
 
 findClosingBracket (x:xs) foundSoFar openBrackets
   | x == ')' && openBrackets == 1 = (Prelude.reverse foundSoFar, xs)
@@ -55,6 +66,7 @@ goDirection char currentCoord
   | char == 'E' = moveRight currentCoord
   | char == 'S' = moveDown currentCoord
   | char == 'W' = moveLeft currentCoord
+  | otherwise = error ("unsupported char" ++ show char)
 
 type Path = Seq Coordinate
 
