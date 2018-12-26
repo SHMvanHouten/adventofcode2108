@@ -17,8 +17,12 @@ parseRoutes input pathSoFar routes
     let (rawRoute, rest) = span (\c -> c /= '(') input
     parseRoutes rest (pathSoFar><(parseRoute rawRoute (lastElem pathSoFar))) routes
 
-parseBrackets input pathSoFar routes = do
-  routes ++ concatMap (\s -> parseRoutes (s++rest) pathSoFar []) branches
+parseBrackets input pathSoFar routes
+  | last branches == [] = do
+    let finishedRoutes = concatMap (\s -> parseRoutes s pathSoFar []) (init branches)
+    let mainRoute = parseRoutes rest pathSoFar []
+    routes ++ (finishedRoutes) ++ mainRoute
+  | otherwise = routes ++ concatMap (\s -> parseRoutes (s++rest) pathSoFar []) branches
   where (bracketStuff, rest) = findClosingBracket (tail input) [] 1
         branches = findBranches bracketStuff 0 [] []
 
