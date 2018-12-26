@@ -32,3 +32,9 @@ spec = do
      let input = "^ENWWW(NEEE|SSE(EE|N))$"
      let result = parseInput input
      map (toPrintablePath) result `shouldBe` ["ENWWWNEEE", "ENWWWSSEEE", "ENWWWSSEN"]
+
+    it "finds the example routes" $ do
+      --TODO: the empty branches should be halved to cut off the return trip
+     let input = "^ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN$"
+     let result = parseInput input
+     map (toPrintablePath) result `shouldBe` ["ENNWSWWNEWS", "ENNWSWWSSSEENWNSE", "ENNWSWWSSSEENEESWEN", "ENNWSWWSSSEENEENNN"]

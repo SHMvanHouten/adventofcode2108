@@ -12,13 +12,15 @@ parseInput input = do
 parseRoutes :: String -> Path -> [Path] -> [Path]
 parseRoutes [] pathSoFar routes = routes ++ [pathSoFar]
 parseRoutes input pathSoFar routes
-  | head input == '(' = do
-    let (bracketStuff, rest) = findClosingBracket (tail input) [] 1
-    let branches = findBranches bracketStuff 0 [] []
-    routes ++ concatMap (\s -> parseRoutes (s++rest) pathSoFar []) branches
+  | head input == '(' = parseBrackets input pathSoFar routes
   | otherwise = do
     let (rawRoute, rest) = span (\c -> c /= '(') input
     parseRoutes rest (pathSoFar><(parseRoute rawRoute (lastElem pathSoFar))) routes
+
+parseBrackets input pathSoFar routes = do
+  routes ++ concatMap (\s -> parseRoutes (s++rest) pathSoFar []) branches
+  where (bracketStuff, rest) = findClosingBracket (tail input) [] 1
+        branches = findBranches bracketStuff 0 [] []
 
 findClosingBracket (x:xs) foundSoFar openBrackets
   | x == ')' && openBrackets == 1 = (Prelude.reverse foundSoFar, xs)
