@@ -5,6 +5,7 @@ import AOC.Day16.Registers
 
 printProgram :: Instructions -> Registers -> Int -> IO()
 printProgram instructions registers ipRegister
+  | instructionPointer == 29 = print "look at the previous one!"
   | updatedInstructionPointer `member` instructions = do
     printProgramStep registers instructionPointer resultingRegisters
     printProgram instructions registersWithUpdatedIp ipRegister
