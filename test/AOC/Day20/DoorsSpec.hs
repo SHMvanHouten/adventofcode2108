@@ -21,6 +21,17 @@ spec = do
       let printedPath = toPrintablePath longestPath
       print printedPath
       Prelude.length printedPath `shouldBe` 4247
+    it "finds the amount of longest paths" $ do
+      input <- readFile "resources/input-day20.txt"
+      let result = parseInput input
+      let longPaths = getAllPathsOver1000Long result
+      Prelude.length longPaths `shouldBe` 893
+    it "solves the challenge part 2" $ do
+      input <- readFile "resources/input-day20.txt"
+      let result = parseInput input
+      let farAwayRooms = getAmountOfRoomsOver1000DoorsAway result
+      farAwayRooms `shouldBe` 8356
+
 
   describe "test input" $ do
     it " solves the first test input" $ do

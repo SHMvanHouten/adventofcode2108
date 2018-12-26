@@ -5,6 +5,16 @@ import AOC.Util.SequenceHelper
 import AOC.Util.Coordinate
 import qualified Data.List as List
 import Data.Function (on)
+import qualified Data.Set as Set
+import Data.Foldable (toList)
+
+getAmountOfRoomsOver1000DoorsAway paths = Set.size $ getAllRoomsOver1000DoorsAway paths
+
+getAllRoomsOver1000DoorsAway paths = do
+  let allPathsOver1000Long = getAllPathsOver1000Long paths
+  Set.fromList $ concat $ map (toList) $ map (\p -> Data.Sequence.drop 1000 p) paths
+
+getAllPathsOver1000Long paths = List.filter (\p -> Data.Sequence.length p > 1000) paths
 
 getLongestPath :: [Path] -> Path
 getLongestPath paths = List.maximumBy (compare `on` Data.Sequence.length) paths
