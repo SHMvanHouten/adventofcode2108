@@ -27,7 +27,7 @@ spec = do
         input <- readFile "resources/input-day19.txt"
         let (ipRegister, instructions) = parseRegisterInput input
         let registers = fromList [(0,1), (1,0), (2,0), (3,0), (4,0), (5,0)]
-        printProgram instructions regist?ers ipRegister
+        printProgram instructions registers ipRegister
         pending
 --        let result = runTheProgram instructions registers ipRegister
 --        print result

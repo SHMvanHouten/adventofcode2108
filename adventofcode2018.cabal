@@ -31,6 +31,8 @@ library
                      , AOC.Day17.ReservoirResearch
                      , AOC.Day18.Forestry
                      , AOC.Day19.Reversing
+                     , AOC.Day20.Doors
+                     , AOC.Util.SequenceHelper
   extensions:          ViewPatterns
   build-depends:       base >= 4.7 && < 5, containers, split, pointedlist
   default-language:    Haskell2010
@@ -64,6 +66,8 @@ test-suite adventofcode2018-test
                      , AOC.Day17.ReservoirResearchSpec
                      , AOC.Day18.ForestrySpec
                      , AOC.Day19.ReversingSpec
+                     , AOC.Day20.DoorsSpec
+                     , AOC.Util.SequenceHelperSpec
   build-depends:       base
                      , adventofcode2018
                      , hspec
