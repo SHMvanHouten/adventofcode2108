@@ -27,6 +27,9 @@ moveUpRight coordinate = Coordinate (x' coordinate + 1) (y' coordinate - 1)
 moveDownLeft coordinate = Coordinate (x' coordinate - 1) (y' coordinate + 1)
 moveDownRight coordinate = Coordinate (x' coordinate + 1) (y' coordinate + 1)
 
+allCoordinatesBetween :: Coordinate -> Coordinate -> [Coordinate]
+allCoordinatesBetween start end = getAllCoordinatesBetween (x' start) (y' start) (x' end) (y' end)
+
 getAllCoordinatesBetween :: Int -> Int -> Int -> Int -> [Coordinate]
 getAllCoordinatesBetween x1 y1 x2 y2 = do
   concatMap (\y -> toLine y [x1..x2]) [y1..y2]
