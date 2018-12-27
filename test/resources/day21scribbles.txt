@@ -1,0 +1,32 @@
+#ip 2
+0 :seti 123 0 5        (r5 = 123)
+1 :bani 5 456 5
+2 :eqri 5 72 5
+3 :addr 5 2 2
+4 :seti 0 0 2
+5 :seti 0 9 5          (r5 = 0)(up until here: and check)
+6 :bori 5 65536 3      (r3 = r5 | 65536)
+7 :seti 7586220 4 5    (r5 = 7586220)
+8 :bani 3 255 1        (r1 = r3 & 255)
+9 :addr 5 1 5          (r5 += r1)
+10:bani 5 16777215 5   (r5 = r5 & 16777215)
+11:muli 5 65899 5      (r5 = r5 * 65899)
+12:bani 5 16777215 5   (r5 = r5 & 16777215)
+13:gtir 256 3 1        (r1 = r3 < 256? 1 : 0) if r3 < 256 then we evaluate r5 == r0
+14:addr 1 2 2          (r2 += r1)
+15:addi 2 1 2          (r2 += 1)
+16:seti 27 9 2         (r2 = 27)
+17:seti 0 9 1          (r1 = 0)               else :
+18:addi 1 1 4          (r4 = 1 + r1)
+19:muli 4 256 4        (r4 = r4 * 256)
+20:gtrr 4 3 4          (r4 = r4 > r3 ? 1 : 0)
+21:addr 4 2 2          (r2 += r4)
+22:addi 2 1 2          (r2 += 2) (ie go back to 18)
+23:seti 25 4 2         (r2 = 25)
+24:addi 1 1 1          (r1 += 1)
+25:seti 17 2 2         (r2 = 17)
+26:setr 1 6 3          (r3 = r1)
+27:seti 7 8 2          (r2 = 7)
+28:eqrr 5 0 1          (if r5 == input(r0) then end the program,
+29:addr 1 2 2          else reset r3 based on r5 and r5 to normal input)
+30:seti 5 0 2
