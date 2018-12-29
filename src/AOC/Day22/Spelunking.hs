@@ -7,42 +7,50 @@ import Data.Maybe
 import AOC.Util.SequenceHelper
 import Data.List (any)
 
-unfoundTargetNode coordinate = Node coordinate empty Torch (10000000)
+unfoundTargetNode :: Coordinate -> Node
+unfoundTargetNode coordinate = Node coordinate stubNode Torch (1500)
 
-printQuickestPath :: State -> ActiveNodes -> Node -> IO()
-printQuickestPath state (n Seq.:<| ns) targetNode = do
-  let nextRegions = getTargetRegions n (regionMap state) (keys $ path n)
-  let (updatedNextNodes, updatedTargetNode) = updateNodes n nextRegions ns targetNode
-  print updatedNextNodes
-  printQuickestPath state updatedNextNodes updatedTargetNode
-
-printQuickestPath _ empty targetNode = print targetNode
+stubNode :: Node
+stubNode = Node (Coordinate (-1) (-1)) stubNode Torch 0
 
 findQuickestPath :: State -> ActiveNodes -> Node -> Node
 findQuickestPath state (n Seq.:<| ns) targetNode = do
-  let nextRegions = getTargetRegions n (regionMap state) (keys $ path n)
-  let (updatedNextNodes, updatedTargetNode) = updateNodes n nextRegions ns targetNode
-  findQuickestPath state updatedNextNodes updatedTargetNode
+  let nextRegions = getTargetRegions n (regionMap state) (previous n)
+  let (updatedNextNodes, updatedTargetNode, newState) = updateNodes n nextRegions ns targetNode state
+  findQuickestPath newState updatedNextNodes updatedTargetNode
 
 findQuickestPath _ empty targetNode = targetNode
 
-updateNodes :: Node -> [(Coordinate, Region)] -> Seq.Seq Node -> Node -> (Seq.Seq Node, Node)
-updateNodes node newRegions activeNodes targetNode = do
+updateNodes :: Node -> [(Coordinate, Region)] -> Seq.Seq Node -> Node -> State -> (Seq.Seq Node, Node, State)
+updateNodes node newRegions activeNodes targetNode state = do
   let newNodes = concatMap (`toPossibleNodes` node) newRegions
   let (updatedNewNodes, updatedTargetNode) = updateTargetNode newNodes targetNode []
-  let doubleUpdatedNewNodes = updatedNewNodes
-  -- todo: filter out new nodes that are slower at their current location with their tool than active nodes had been at any point in their path
-  let updatedActiveNodes = filterOutSlowActiveNodes activeNodes updatedNewNodes
+  let (filteredNewNodes, newState) = updateVisitedCoordinates updatedNewNodes state Seq.empty
+--  let updatedActiveNodes = filterOutSlowActiveNodes activeNodes filteredNewNodes
   let newActiveNodeSequence = Seq.filter (\n -> (currentTime n) < (currentTime targetNode))
-                              $ updatedActiveNodes Seq.>< (Seq.fromList doubleUpdatedNewNodes)
-  (newActiveNodeSequence, updatedTargetNode)
+                              $ activeNodes Seq.>< filteredNewNodes
+  (newActiveNodeSequence, updatedTargetNode, newState)
 
-filterOutSlowActiveNodes :: Seq.Seq Node -> [Node] -> Seq.Seq Node
+updateVisitedCoordinates [] state filteredNodes = (filteredNodes, state)
+updateVisitedCoordinates (n:ns) state filteredNodes
+  | not $ locNTool `member` coords = updateVisitedCoordinates ns (addNodeToVisited n state) (filteredNodes Seq.|>n)
+  | n `isFasterThan` (coords!locNTool) = updateVisitedCoordinates ns (addNodeToVisited n state) (filteredNodes Seq.|>n)
+  | otherwise = updateVisitedCoordinates ns state filteredNodes
+  where coords = visitedCoordinates state
+        locNTool = (location n, currentTool n)
+
+isFasterThan node time = (currentTime node) < time
+
+addNodeToVisited node state = do
+  let visited = visitedCoordinates state
+  let updatedVisited = insert (location node, currentTool node) (currentTime node) visited
+  State (regionMap state) (target state) updatedVisited
+
+filterOutSlowActiveNodes :: Seq.Seq Node -> Seq.Seq Node -> Seq.Seq Node
 filterOutSlowActiveNodes activeNodes newNodes = do
-  let filteredOutCurrentLocation = Seq.filter (\n -> not $ any (`equalsAndIsFasterThan` n) newNodes) activeNodes
-  Seq.filter (\n -> not $ any (`isFasterThanInPath` (path n)) newNodes) filteredOutCurrentLocation
+  Seq.filter (\n -> not $ any (`equalsAndIsFasterThan` n) newNodes) activeNodes
 
-equalsAndIsFasterThan checkNode filteredNode
+equalsAndIsFasterThan filteredNode checkNode
   | checkNode /= filteredNode = False
   | otherwise = (currentTime checkNode) <= (currentTime filteredNode)
 
@@ -51,55 +59,24 @@ updateTargetNode [] targetNode updatedNewNodes = (updatedNewNodes, targetNode)
 updateTargetNode (n:ns) targetNode updatedNewNodes
   | n == targetNode && n < targetNode = updateTargetNode ns n updatedNewNodes
   | n == targetNode && n >= targetNode = updateTargetNode ns targetNode updatedNewNodes
-  | n `isFasterThanInPath` (path targetNode) = updateTargetNode ns (retrackNodesPathWithQuickerStep n targetNode) updatedNewNodes
   | otherwise = updateTargetNode ns targetNode (updatedNewNodes ++ [n])
-
-retrackNodesPathWithQuickerStep :: Node -> Node -> Node
-retrackNodesPathWithQuickerStep quickerNode oldNode
-  | nextStep == Nothing = quickerNode
-  | otherwise = retrackNodesPathWithQuickerStep (fromJust nextStep) oldNode
-  where nextStep = findNextStep quickerNode oldNode
-
-findNextStep newNode oldNode
-  | any (`member` (path oldNode)) possibleTargets = do
-    let nextStepLocation = head $ filter (`member` (path oldNode)) possibleTargets
-    let nextStepTool = fst $ (path oldNode)!nextStepLocation
-    let nextStepTimeChange = 1 + (getToolSwitchingTime (currentTool newNode) nextStepTool)
-    let nextStepTime = currentTime newNode + nextStepTimeChange
-    let newPath = insert nextStepLocation (nextStepTool, nextStepTime) (path newNode)
-    Just $ Node nextStepLocation newPath nextStepTool nextStepTime
-  | otherwise = Nothing
-  where possibleTargets = getPossibleTargets newNode
-
-getToolSwitchingTime oldTool newTool
-  | oldTool == newTool = 0
-  | otherwise = 7
-
-isFasterThanInPath :: Node -> Map Coordinate (Tool, TotalTimeToGetToCoordinate) -> Bool
-isFasterThanInPath node path
- | not $ loc `member` path = False
- | otherwise = do
-    let toolToTime = path!loc
-    (fst toolToTime == (currentTool node) ) && (snd toolToTime ) > (currentTime node)
- where loc = location node
 
 toPossibleNodes :: (Coordinate, Region) -> Node -> [Node]
 toPossibleNodes (coordinate, region) previousNode = do
   let tool = currentTool previousNode
-  let updatedPath = insert (location previousNode) (tool, currentTime previousNode) (path previousNode)
   let time = (currentTime previousNode + 1)
-  let sameToolNode = Node coordinate updatedPath tool time
-  let switchedToolNode = Node coordinate updatedPath (getOtherToolForRegion tool region) (time + 7)
+  let sameToolNode = Node coordinate previousNode tool time
+  let switchedToolNode = Node coordinate previousNode (getOtherToolForRegion tool region) (time + 7)
   [sameToolNode, switchedToolNode]
 
 getOtherToolForRegion tool region = head $ filter (\t-> t /= tool && t /= (regionToolNotAllowedMap!region))allTools
 
-getPossibleTargets node = filter (\c -> not $ any (==c) (keys $ path node))
+getPossibleTargets node = filter (\c -> c /= location (previous node))
                           $ getSurroundingCoordinates (location node)
 
-getTargetRegions:: Node -> Map Coordinate Region -> [Coordinate] -> [(Coordinate, Region)]
-getTargetRegions node regionMap visitedCoordinates = filter (`stepIsAllowed` (currentTool node))
-                                       $ filter (\cToR -> not $ any (== (fst cToR)) visitedCoordinates)
+getTargetRegions:: Node -> Map Coordinate Region -> Node -> [(Coordinate, Region)]
+getTargetRegions node regionMap previousNode = filter (`stepIsAllowed` (currentTool node))
+                                       $ filter (\cToR -> fst cToR /= (location previousNode))
                                        $ getSurroundingRegions (location node) regionMap
 
 getSurroundingRegions :: Coordinate -> Map Coordinate Region -> [(Coordinate, Region)]
@@ -112,9 +89,9 @@ stepIsAllowed (_, region) tool = regionToolNotAllowedMap!region /= tool
 
 buildState depth target = do
   let start = Coordinate 0 0
-  let erosionLevels = insert target 0 $ getErosionLevelMap [(x' start)..(x' target+ 20)] [(y' start)..(y' target + 20)] depth
+  let erosionLevels = insert target 0 $ getErosionLevelMap [(x' start)..(x' target+ 40)] [(y' start)..(y' target + 20)] depth
   let regionMap = Data.Map.map (toRegion) erosionLevels
-  State regionMap target
+  State regionMap target empty
 
 none x func coll = not $ any (func) coll
 --------
@@ -161,12 +138,13 @@ data Region = Rocky | Wet | Narrow deriving (Eq, Ord, Show)
 
 data State = State {
   regionMap :: Map Coordinate Region,
-  target :: Coordinate
+  target :: Coordinate,
+  visitedCoordinates :: Map (Coordinate, Tool) (TotalTimeToGetToCoordinate)
 } deriving (Show)
 
 data Node = Node {
   location :: Coordinate,
-  path :: Map Coordinate (Tool, TotalTimeToGetToCoordinate),
+  previous :: Node,
   currentTool :: Tool,
   currentTime :: TotalTimeToGetToCoordinate
 }
@@ -191,3 +169,12 @@ regionToolNotAllowedMap = fromList [(Rocky, Neither),
                                     (Narrow, ClimbingGear)]
 
 allTools = [ClimbingGear, Torch, Neither]
+
+--printQuickestPath :: State -> ActiveNodes -> Node -> IO()
+--printQuickestPath state (n Seq.:<| ns) targetNode = do
+--  let nextRegions = getTargetRegions n (regionMap state) (keys $ path n)
+--  let (updatedNextNodes, updatedTargetNode) = updateNodes n nextRegions ns targetNode
+--  print updatedNextNodes
+--  printQuickestPath state updatedNextNodes updatedTargetNode
+--
+--printQuickestPath _ empty targetNode = print targetNode

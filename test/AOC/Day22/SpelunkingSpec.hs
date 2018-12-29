@@ -18,9 +18,9 @@ spec = do
   describe "challenge part 2" $ do
     it "solves challenge part 2" $ do
       let depth = 11109
-      let target = Coordinate 9 731
+      let target = Coordinate 9 200
       let state = buildState depth target
-      let initialNode = Node (Coordinate 0 0) Map.empty Torch 0
+      let initialNode = Node (Coordinate 0 0) stubNode Torch 0
       let quickestNode = findQuickestPath state (Seq.singleton initialNode) (unfoundTargetNode target)
       currentTime quickestNode `shouldBe` 45
       pending
@@ -29,7 +29,7 @@ spec = do
       let depth = 510
       let target = Coordinate 10 10
       let state = buildState depth target
-      let initialNode = Node (Coordinate 0 0) Map.empty Torch 0
+      let initialNode = Node (Coordinate 0 0) stubNode Torch 0
       let quickestNode = findQuickestPath state (Seq.singleton initialNode) (unfoundTargetNode target)
       currentTime quickestNode `shouldBe` 45
 
