@@ -18,12 +18,11 @@ spec = do
   describe "challenge part 2" $ do
     it "solves challenge part 2" $ do
       let depth = 11109
-      let target = Coordinate 9 200
+      let target = Coordinate 9 731
       let state = buildState depth target
       let initialNode = Node (Coordinate 0 0) stubNode Torch 0
       let quickestNode = findQuickestPath state (Seq.singleton initialNode) (unfoundTargetNode target)
-      currentTime quickestNode `shouldBe` 45
-      pending
+      currentTime quickestNode `shouldBe` 1008
   describe "testInput part 2" $ do
     it "solves testInput part 2" $ do
       let depth = 510
@@ -32,7 +31,6 @@ spec = do
       let initialNode = Node (Coordinate 0 0) stubNode Torch 0
       let quickestNode = findQuickestPath state (Seq.singleton initialNode) (unfoundTargetNode target)
       currentTime quickestNode `shouldBe` 45
-
 
   describe "getSurroundingRegions" $ do
     it "gets the surrounding regions" $ do
@@ -52,7 +50,6 @@ spec = do
       stepIsAllowed (Coordinate 0 0, Rocky) Neither `shouldBe` False
     it "is allowed to move to a rocky region with climbing gear equipped" $ do
       stepIsAllowed (Coordinate 0 0, Wet) ClimbingGear `shouldBe` True
-
 
   -----------------
   --  part 1
@@ -81,16 +78,3 @@ spec = do
    it "all other coordinates have a geoIndex of product of the erosion levels of the regions to the left and above" $ do
     let geoMap = Map.fromList [((Coordinate 0 1), 8415), ((Coordinate 1 0), 17317)]
     determineGeologicIndex (Coordinate 1 1) geoMap `shouldBe` 145722555
-
--- let's try first with x + 100 and y + 100 (negative x and y are solid rock)
-
--- you will have two steps for each coordinate with one of the two tools appropriate for the region type it is
--- for each step, try all directions with current tool,
---    and having switched tools appropriate for the region (so 8 checks in total)
---    and see if it is the fastest to that coordinate with that tool
---      if so: add that route as the fastest currently for that coordinate
-
---      update the active nodes with a path using that Coordinate and Tool (deduct the time saved by finding the new node)
-
--- todo: when hitting the target node, delete all active nodes that have longer paths and from then on
--- delete any node that has a longer time spent

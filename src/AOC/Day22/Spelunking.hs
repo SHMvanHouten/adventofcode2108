@@ -14,19 +14,19 @@ stubNode :: Node
 stubNode = Node (Coordinate (-1) (-1)) stubNode Torch 0
 
 findQuickestPath :: State -> ActiveNodes -> Node -> Node
-findQuickestPath state (n Seq.:<| ns) targetNode = do
-  let nextRegions = getTargetRegions n (regionMap state) (previous n)
-  let (updatedNextNodes, updatedTargetNode, newState) = updateNodes n nextRegions ns targetNode state
-  findQuickestPath newState updatedNextNodes updatedTargetNode
-
-findQuickestPath _ empty targetNode = targetNode
+findQuickestPath state activeNodes targetNode
+  | activeNodes /= Seq.empty = do
+    let (n, ns) = firstElemAndRest $ Seq.sort activeNodes
+    let nextRegions = getTargetRegions n (regionMap state) (previous n)
+    let (updatedNextNodes, updatedTargetNode, newState) = updateNodes n nextRegions ns targetNode state
+    findQuickestPath newState updatedNextNodes updatedTargetNode
+  | otherwise = targetNode
 
 updateNodes :: Node -> [(Coordinate, Region)] -> Seq.Seq Node -> Node -> State -> (Seq.Seq Node, Node, State)
 updateNodes node newRegions activeNodes targetNode state = do
   let newNodes = concatMap (`toPossibleNodes` node) newRegions
   let (updatedNewNodes, updatedTargetNode) = updateTargetNode newNodes targetNode []
   let (filteredNewNodes, newState) = updateVisitedCoordinates updatedNewNodes state Seq.empty
---  let updatedActiveNodes = filterOutSlowActiveNodes activeNodes filteredNewNodes
   let newActiveNodeSequence = Seq.filter (\n -> (currentTime n) < (currentTime targetNode))
                               $ activeNodes Seq.>< filteredNewNodes
   (newActiveNodeSequence, updatedTargetNode, newState)
@@ -46,14 +46,6 @@ addNodeToVisited node state = do
   let updatedVisited = insert (location node, currentTool node) (currentTime node) visited
   State (regionMap state) (target state) updatedVisited
 
-filterOutSlowActiveNodes :: Seq.Seq Node -> Seq.Seq Node -> Seq.Seq Node
-filterOutSlowActiveNodes activeNodes newNodes = do
-  Seq.filter (\n -> not $ any (`equalsAndIsFasterThan` n) newNodes) activeNodes
-
-equalsAndIsFasterThan filteredNode checkNode
-  | checkNode /= filteredNode = False
-  | otherwise = (currentTime checkNode) <= (currentTime filteredNode)
-
 updateTargetNode :: [Node] -> Node -> [Node]-> ([Node], Node)
 updateTargetNode [] targetNode updatedNewNodes = (updatedNewNodes, targetNode)
 updateTargetNode (n:ns) targetNode updatedNewNodes
@@ -70,9 +62,6 @@ toPossibleNodes (coordinate, region) previousNode = do
   [sameToolNode, switchedToolNode]
 
 getOtherToolForRegion tool region = head $ filter (\t-> t /= tool && t /= (regionToolNotAllowedMap!region))allTools
-
-getPossibleTargets node = filter (\c -> c /= location (previous node))
-                          $ getSurroundingCoordinates (location node)
 
 getTargetRegions:: Node -> Map Coordinate Region -> Node -> [(Coordinate, Region)]
 getTargetRegions node regionMap previousNode = filter (`stepIsAllowed` (currentTool node))
@@ -93,7 +82,6 @@ buildState depth target = do
   let regionMap = Data.Map.map (toRegion) erosionLevels
   State regionMap target empty
 
-none x func coll = not $ any (func) coll
 --------
 -- part 1
 --------
@@ -102,11 +90,6 @@ determineRisk :: Coordinate -> Coordinate -> Int -> Int
 determineRisk start target depth = do
   let erosionLevels = insert target 0 $ getErosionLevelMap [(x' start)..(x' target)] [(y' start)..(y' target)] depth
   sum $ Prelude.map (`mod` 3) $ elems erosionLevels
-
-toRiskLevel region
-  | region == Rocky = 0
-  | region == Wet = 1
-  | region == Narrow = 2
 
 toRegion erosionLevel
     | erosionLevel `mod` 3 == 0 = Rocky
@@ -169,12 +152,3 @@ regionToolNotAllowedMap = fromList [(Rocky, Neither),
                                     (Narrow, ClimbingGear)]
 
 allTools = [ClimbingGear, Torch, Neither]
-
---printQuickestPath :: State -> ActiveNodes -> Node -> IO()
---printQuickestPath state (n Seq.:<| ns) targetNode = do
---  let nextRegions = getTargetRegions n (regionMap state) (keys $ path n)
---  let (updatedNextNodes, updatedTargetNode) = updateNodes n nextRegions ns targetNode
---  print updatedNextNodes
---  printQuickestPath state updatedNextNodes updatedTargetNode
---
---printQuickestPath _ empty targetNode = print targetNode
