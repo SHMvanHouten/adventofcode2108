@@ -4,12 +4,23 @@ import Test.Hspec
 import Test.QuickCheck
 import AOC.Day23.NanoBots
 import AOC.Util.Coord3D
+import qualified Data.Sequence as Seq
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
 spec = do
 
+  describe "testInput part 2" $ do
+      it "finds the point that is in the range of most bots" $ do
+        let input = "pos=<10,12,12>, r=2\n"++
+                    "pos=<12,14,12>, r=2\n"++
+                    "pos=<16,12,12>, r=4\n"++
+                    "pos=<14,14,14>, r=6\n"++
+                    "pos=<50,50,50>, r=200\n"++
+                    "pos=<10,10,10>, r=5\n"
+        let bots = parseInput input
+        findPointInRangeOfMostBots bots `shouldBe` Coord3d 12 12 12
   describe "challenge part 1" $ do
     it "solves the challenge input" $ do
       input <- readFile "resources/input-day23.txt"

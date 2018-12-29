@@ -3,12 +3,27 @@ module AOC.Day23.NanoBots where
 import AOC.Util.Coord3D
 import Data.List.Split
 import qualified Data.List as List
+import Data.Sequence
+
+findPointInRangeOfMostBots bots = do
+  let coordsInRange = getCoordsInRange [10..50] [10..50] [10..50]
+  findPointWithMostBots coordsInRange bots (stubCoord, 0)
+
+findPointWithMostBots :: Seq Coord3d -> [NanoBot] -> (Coord3d, Int) -> Coord3d
+findPointWithMostBots (c:<|cs) bots (bestPoint, value) = do
+  let currentValue = List.length $ List.filter (`isInRange` c) bots
+  if currentValue > value
+    then findPointWithMostBots cs bots (c, currentValue)
+    else findPointWithMostBots cs bots (bestPoint, value)
+findPointWithMostBots empty _ (bestPoint, _) = bestPoint
+
+isInRange (NanoBot loc r) coordinate = (distance loc coordinate) <= r
 
 getAmountOfBotsInRadius :: NanoBot -> [NanoBot] -> Int
-getAmountOfBotsInRadius bot others = length $ getBotsWithinRadius bot others
+getAmountOfBotsInRadius bot others = List.length $ getBotsWithinRadius bot others
 
 getBotsWithinRadius (NanoBot {coord= coordinate, radius = radius}) others=
-  filter (\c -> coordinate `distance` c <= radius) $ map (coord) others
+  List.filter (\c -> coordinate `distance` c <= radius) $ map (coord) others
 
 ---------
 -- Parse Input
@@ -24,7 +39,7 @@ parseBot raw = do
   NanoBot coord radius
 
 parseCoord3d raw = do
-  let rawCoords = head $ splitOn ">" $ drop 5 raw
+  let rawCoords = head $ splitOn ">" $ List.drop 5 raw
   let coords = map (parseInt) $ splitOn "," rawCoords
   Coord3d (coords!!0) (coords!!1) (coords!!2)
 
