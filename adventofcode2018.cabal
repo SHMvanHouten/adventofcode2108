@@ -34,6 +34,8 @@ library
                      , AOC.Day20.Doors
                      , AOC.Util.SequenceHelper
                      , AOC.Day22.Spelunking
+                     , AOC.Util.Coord3D
+                     , AOC.Day23.NanoBots
   extensions:          ViewPatterns
   build-depends:       base >= 4.7 && < 5, containers, split, pointedlist
   default-language:    Haskell2010
@@ -70,6 +72,8 @@ test-suite adventofcode2018-test
                      , AOC.Day20.DoorsSpec
                      , AOC.Util.SequenceHelperSpec
                      , AOC.Day22.SpelunkingSpec
+                     , AOC.Util.Coord3DSpec
+                     , AOC.Day23.NanoBotsSpec
   build-depends:       base
                      , adventofcode2018
                      , hspec
