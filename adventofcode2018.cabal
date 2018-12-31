@@ -37,6 +37,8 @@ library
                      , AOC.Util.Coord3D
                      , AOC.Day23.NanoBots
                      , AOC.Day24.ImmuneSystemSim
+                     , AOC.Day25.Constellations
+                     , AOC.Util.Coord4D
   extensions:          ViewPatterns
   build-depends:       base >= 4.7 && < 5, containers, split, pointedlist, data-accessor
   default-language:    Haskell2010
@@ -76,6 +78,7 @@ test-suite adventofcode2018-test
                      , AOC.Util.Coord3DSpec
                      , AOC.Day23.NanoBotsSpec
                      , AOC.Day24.ImmuneSystemSimSpec
+                     , AOC.Day25.ConstellationsSpec
   build-depends:       base
                      , adventofcode2018
                      , hspec
