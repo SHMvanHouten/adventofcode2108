@@ -36,8 +36,9 @@ library
                      , AOC.Day22.Spelunking
                      , AOC.Util.Coord3D
                      , AOC.Day23.NanoBots
+                     , AOC.Day24.ImmuneSystemSim
   extensions:          ViewPatterns
-  build-depends:       base >= 4.7 && < 5, containers, split, pointedlist
+  build-depends:       base >= 4.7 && < 5, containers, split, pointedlist, data-accessor
   default-language:    Haskell2010
 
 executable adventofcode2018
@@ -74,6 +75,7 @@ test-suite adventofcode2018-test
                      , AOC.Day22.SpelunkingSpec
                      , AOC.Util.Coord3DSpec
                      , AOC.Day23.NanoBotsSpec
+                     , AOC.Day24.ImmuneSystemSimSpec
   build-depends:       base
                      , adventofcode2018
                      , hspec
