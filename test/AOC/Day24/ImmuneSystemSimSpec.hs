@@ -6,19 +6,23 @@ import Test.QuickCheck
 import AOC.Day24.ImmuneSystemSim
 import qualified Data.Map as Map
 import qualified Data.List as List
+import Data.Maybe
 
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
 spec = do
-
+  -- not 13437
   describe "challenge" $ do
     it "solves the challenge part 1" $ do
       input <- readFile "resources/input-day24.txt"
       let (immuneSystemGroups, infectionGroups) = parseInput input
       let result = resolveBattle immuneSystemGroups infectionGroups
+      print result
       result > 12516 `shouldBe` True
+      result < 13440 `shouldBe` True
+      result `shouldNotBe` 13437
 
   describe "testInput" $ do
         it "solves the test input" $ do
@@ -26,11 +30,11 @@ spec = do
           let result = resolveBattle immuneSystemGroups infectionGroups
           result `shouldBe` 5216
 
-  describe "printFight" $ do
-    it "prints the fight" $ do
-      input <- readFile "resources/input-day24.txt"
-      let (immuneSystemGroups, infectionGroups) = parseInput input
-      printFight (mapIdToIdentity immuneSystemGroups) (mapIdToIdentity infectionGroups)
+--  describe "printFight" $ do
+--    it "prints the fight" $ do
+--      input <- readFile "resources/input-day24.txt"
+--      let (immuneSystemGroups, infectionGroups) = parseInput input
+--      printFight (mapIdToIdentity immuneSystemGroups) (mapIdToIdentity infectionGroups)
 
   describe "performAttacks" $ do
       it "Performs attacks according to order picked" $ do
@@ -64,12 +68,17 @@ spec = do
         let (immuneSystemGroups, infectionGroups) = parseInput testInput
         let pickingInfection = head infectionGroups
         let choice = chooseOpposingGroupToInfect pickingInfection immuneSystemGroups
-        id' choice `shouldBe` 0
+        (id' $ fromJust choice) `shouldBe` 0
       it "selects the target that would receive the most damage" $ do
         let (immuneSystemGroups, infectionGroups) = parseInput testInput
         let pickingImmune = head immuneSystemGroups
         let choice = chooseOpposingGroupToInfect pickingImmune infectionGroups
-        id' choice `shouldBe` 1
+        (id' $ fromJust choice) `shouldBe` 1
+      it "selects no target if the damage dealt would be 0" $ do
+        let attackingGroup = Group 0 Infection 10 10 [] [] "fire" 9 1
+        let defGroup = Group 0 ImmuneSystem 1 1 [] ["fire"] "fire" 9 1
+        let choice = chooseOpposingGroupToInfect attackingGroup [defGroup]
+        choice `shouldBe` Nothing
   describe "calculateDamage" $ do
     it "calculates double damage if damageType is a weakness" $ do
       let attackingGroup = Group 0 Infection 10 10 [] [] "fire" 9 1
@@ -83,7 +92,6 @@ spec = do
       let attackingGroup = Group 0 Infection 10 10 [] [] "fire" 9 1
       let defGroup = Group 0 ImmuneSystem 1 1 [] ["fire"] "fire" 9 1
       calculateDamage defGroup attackingGroup `shouldBe` 0
-
 
 --  describe "parse input" $ do
 --    it "parses the test input" $ do

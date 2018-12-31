@@ -13,7 +13,7 @@ printFight immunes infections
     putStrLn $ unlines $ map (show) $ Map.elems resultImmunes
     putStrLn $ unlines $ map (show) $ Map.elems resultInfections
     printFight resultImmunes resultInfections
-  where targets = findWhoAttacksWho (Map.elems immunes) (Map.elems infections)
+  where targets = findWhoAttacksWho (reverse $ List.sort $ Map.elems immunes) (reverse $ List.sort $ Map.elems infections)
         (resultImmunes, resultInfections) = performAttacks immunes infections targets
 
 resolveBattle :: [Group] -> [Group] -> Int
@@ -28,7 +28,7 @@ fightUntilOneGroupTypeIsLeft immunes infections
   | isEmpty resultImmunes = resultInfections
   | isEmpty resultInfections = resultImmunes
   | otherwise = fightUntilOneGroupTypeIsLeft resultImmunes resultInfections
-  where targets = findWhoAttacksWho (Map.elems immunes) (Map.elems infections)
+  where targets = findWhoAttacksWho (reverse $ List.sort $ Map.elems immunes) (reverse $ List.sort $ Map.elems infections)
         (resultImmunes, resultInfections) = performAttacks immunes infections targets
 
 performAttacks :: IdsToGroups -> IdsToGroups -> (TargetsMap, TargetsMap) -> (IdsToGroups, IdsToGroups)
@@ -105,24 +105,30 @@ getGroupAndTarget (t, id'') groups
       else (infectionGroup, Map.lookup (targets Map.! id'') (immuneSystemGroups groups))
 
 findOrderOfAttacks :: [Group] -> [(GroupType, Int)]
-findOrderOfAttacks groups = map (\g -> (groupType g, id' g)) $ List.sortBy (\g1 g2 -> flip compare (initiative g1) (initiative g2)) groups
+findOrderOfAttacks groups = map (\g -> (groupType g, id' g))
+                            $ List.sortBy (\g1 g2 -> flip compare (initiative g1) (initiative g2)) groups
 
 findWhoAttacksWho :: [Group] -> [Group] -> (Map.Map Int Int, Map.Map Int Int)
-findWhoAttacksWho immuneGroups infectionGroups = (getAttackMatches immuneGroups infectionGroups Map.empty
-                                                , getAttackMatches infectionGroups immuneGroups Map.empty)
+findWhoAttacksWho immuneGroups infectionGroups = (getAttackMatches (immuneGroups) infectionGroups Map.empty
+                                                , getAttackMatches (infectionGroups) immuneGroups Map.empty)
 
 getAttackMatches :: [Group] -> [Group] -> Map.Map Int Int -> Map.Map Int Int
 getAttackMatches [] _ matches = matches
 getAttackMatches _ [] matches = matches
-getAttackMatches (a:as) defending matches = do
-  let defenderToAttack = chooseOpposingGroupToInfect a defending
-  let updatedDef = List.delete defenderToAttack defending
-  getAttackMatches as updatedDef (Map.insert (id' a) (id' defenderToAttack) matches)
+getAttackMatches (a:as) defending matches
+  | isNothing defenderToAttack = getAttackMatches as defending matches
+  | otherwise = do
+    let defender = fromJust defenderToAttack
+    let updatedDef = List.delete defender defending
+    getAttackMatches as updatedDef (Map.insert (id' a) (id' defender) matches)
+  where defenderToAttack = chooseOpposingGroupToInfect a defending
 
-chooseOpposingGroupToInfect :: Group -> [Group] -> Group
-chooseOpposingGroupToInfect group enemies =
-    last
-    $ List.sortBy (\g1 g2 -> compareDamageDealt g1 g2 group) enemies
+chooseOpposingGroupToInfect :: Group -> [Group] -> Maybe Group
+chooseOpposingGroupToInfect group enemies
+    | calculateDamage target group == 0 = Nothing
+    | otherwise = Just target
+    where target = last
+                   $ List.sortBy (\g1 g2 -> compareDamageDealt g1 g2 group) enemies
 
 compareDamageDealt :: Group -> Group -> Group -> Ordering
 compareDamageDealt g1 g2 damageDealer
