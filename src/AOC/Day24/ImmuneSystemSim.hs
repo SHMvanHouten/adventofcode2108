@@ -177,11 +177,15 @@ parseWeaknessesAndImmunities raw
 
 getWeakAndImm raw
   | ';' `elem` raw = do
-    let (imm, weak) = break (==';') raw
-    (parseTypes weak, parseTypes imm)
+    breakToImmunitiesAndWeaknesses raw
   | take 5 raw == "(weak" = (parseTypes raw, [])
   | take 5 raw == "(immu" = ([], parseTypes raw)
   | otherwise = error raw
+
+breakToImmunitiesAndWeaknesses raw
+  | (head $ words first) == "(immune" = (parseTypes second, parseTypes first)
+  | (head $ words first) == "(weak" = (parseTypes first, parseTypes second)
+  where (first, second) = break (==';') raw
 
 parseTypes raw
   | ',' `notElem` raw = [last $ words raw]

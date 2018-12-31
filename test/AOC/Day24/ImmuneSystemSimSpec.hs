@@ -13,16 +13,13 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  -- not 13437
+
   describe "challenge" $ do
     it "solves the challenge part 1" $ do
       input <- readFile "resources/input-day24.txt"
       let (immuneSystemGroups, infectionGroups) = parseInput input
       let result = resolveBattle immuneSystemGroups infectionGroups
-      print result
-      result > 12516 `shouldBe` True
-      result < 13440 `shouldBe` True
-      result `shouldNotBe` 13437
+      result `shouldBe` 13331
 
   describe "testInput" $ do
         it "solves the test input" $ do
@@ -62,6 +59,21 @@ spec = do
           let expectedInfectionAttacks = Map.fromList [(1,1), (0,0)]
           resultImmuneAttacks `shouldBe` expectedImmuneAttacks
           resultInfectionAttacks `shouldBe` expectedInfectionAttacks
+
+  describe "dealDamage" $ do
+      context "given attacking group deals 79 damage to defending group of 10units * 10hp" $ do
+        it "defending group loses 7 units " $ do
+          let attackingGroup = Group 0 Infection 1 10 [] [] "fire" 79 1
+          let defGroup = Group 0 ImmuneSystem 10 10 [] [] "fire" 9 1
+          let result = dealDamage attackingGroup defGroup
+          amountOfUnits result `shouldBe` 3
+      context "given attacking group deals 80 damage to defending group of 10units * 10hp" $ do
+        it "defending group loses 8 units" $ do
+          let attackingGroup = Group 0 Infection 1 10 [] [] "fire" 80 1
+          let defGroup = Group 0 ImmuneSystem 10 10 [] [] "fire" 9 1
+          let result = dealDamage attackingGroup defGroup
+          amountOfUnits result `shouldBe` 2
+
 
   describe "target selection" $ do
       it "selects the target with the highest effective power if damage dealt would be equal" $ do
