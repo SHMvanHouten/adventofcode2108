@@ -5,6 +5,22 @@ import qualified Data.Map as Map
 import qualified Data.List as List
 import Data.Maybe
 
+findAmountOfBoostNeededToSurvive immuneGroups infGroups = do
+  let immuneGroupMap = mapIdToIdentity immuneGroups
+  let infectionGroupMap = mapIdToIdentity infGroups
+  findBoostAmountAndImmuneUnitsLeft immuneGroupMap infectionGroupMap 0
+
+findBoostAmountAndImmuneUnitsLeft immunes infections boostAmount
+  | getGroupType winningGroup == ImmuneSystem = (boostAmount, sum $ map (amountOfUnits) (Map.elems winningGroup))
+  | otherwise = findBoostAmountAndImmuneUnitsLeft immunes infections (boostAmount + 1)
+  where winningGroup = fightUntilOneGroupTypeIsLeft (boost immunes boostAmount) infections
+
+getGroupType group = groupType $ head $ Map.elems group
+boost groups amount = Map.map (`boostAttack` amount) groups
+
+boostAttack (Group id' groupType amountOfUnits hitPoints weaknesses immunities damageType damagePower initiative) amount =
+  Group id' groupType amountOfUnits hitPoints weaknesses immunities damageType (damagePower + amount) initiative
+
 printFight :: IdsToGroups -> IdsToGroups -> IO()
 printFight immunes infections
   | isEmpty resultImmunes = putStrLn $ unlines $ map (show) $ Map.elems resultInfections
@@ -27,6 +43,7 @@ fightUntilOneGroupTypeIsLeft :: IdsToGroups -> IdsToGroups -> IdsToGroups
 fightUntilOneGroupTypeIsLeft immunes infections
   | isEmpty resultImmunes = resultInfections
   | isEmpty resultInfections = resultImmunes
+  | isEmpty (fst targets) || isEmpty (snd targets) = resultInfections -- staleMate detected : infections win
   | otherwise = fightUntilOneGroupTypeIsLeft resultImmunes resultInfections
   where targets = findWhoAttacksWho (reverse $ List.sort $ Map.elems immunes) (reverse $ List.sort $ Map.elems infections)
         (resultImmunes, resultInfections) = performAttacks immunes infections targets

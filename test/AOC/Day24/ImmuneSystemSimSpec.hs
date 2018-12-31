@@ -14,6 +14,20 @@ main = hspec spec
 spec :: Spec
 spec = do
 
+
+  describe "challenge part 2" $ do
+    it "solves the challenge for part 2" $ do
+      input <- readFile "resources/input-day24.txt"
+      let (immuneSystemGroups, infectionGroups) = parseInput input
+      let result = findAmountOfBoostNeededToSurvive immuneSystemGroups infectionGroups
+      result `shouldBe` (33, 7476)
+
+  describe "testInput part 2" $ do
+    it "solves the test input for part 2" $ do
+      let (immuneSystemGroups, infectionGroups) = parseInput testInput
+      let result = findAmountOfBoostNeededToSurvive immuneSystemGroups infectionGroups
+      result `shouldBe` (1570, 51)
+
   describe "challenge" $ do
     it "solves the challenge part 1" $ do
       input <- readFile "resources/input-day24.txt"
