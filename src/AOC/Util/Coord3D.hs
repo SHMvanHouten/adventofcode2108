@@ -8,6 +8,8 @@ data Coord3d = Coord3d{
   z::Int
 } deriving (Show, Eq)
 
+divide (Coord3d x y z) amt = Coord3d (x `div` amt) (y `div` amt) (z `div` amt)
+
 stubCoord = Coord3d 0 0 0
 
 distance
@@ -27,3 +29,14 @@ allCoordsPlane xrange (y:ys) z coords = allCoordsPlane xrange ys z coords><(allC
 
 allCoordsLine [] _ _ coords = coords
 allCoordsLine (x:xs) y z coords = allCoordsLine xs y z coords|>(Coord3d x y z)
+
+divRoundUp :: Int -> Int -> Int
+divRoundUp numerator denominator = do
+  let (result, remainder) = numerator `divMod` denominator
+  result + remainderBiggerThanZero remainder
+
+remainderBiggerThanZero remainder
+  | remainder > 0 = 1
+  | otherwise = 0
+
+times (Coord3d x y z) mul = Coord3d (x * mul) (y * mul) ((z * mul))

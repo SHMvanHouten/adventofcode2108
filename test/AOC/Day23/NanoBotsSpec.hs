@@ -5,11 +5,40 @@ import Test.QuickCheck
 import AOC.Day23.NanoBots
 import AOC.Util.Coord3D
 import qualified Data.Sequence as Seq
+import AOC.Day23.Types
+
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
 spec = do
+-- {x = 4048600, y = 2395200, z = 4811900}
+-- {x = 40484500, y = 23948900, z = 48118800}
+-- {x = 40484603, y = 23948992, z = 48118900}
+-- {x = 40484603, y = 23948992, z = 48119001}
+-- 112552200
+-- 112552495 too high
+-- 113267018 too high Coord3d {x = 39044798, y = 25111110, z = 49111110}
+
+--  describe "challenge part  2" $ do
+--      it "finds the point that is in the range of most bots" $ do
+--        input <- readFile "resources/input-day23.txt"
+--        -- map (`divideBot` 100) $
+--        let bots = parseInput input
+--        challengeFindPointInRangeOfMostBots (Seq.fromList bots) `shouldBe` Coord3d 0 0 0
+
+  describe "challenge part  2" $ do
+      it "finds the point that is in the range of most bots" $ do
+        input <- readFile "resources/input-day23.txt"
+        let bots = map (`divideBot` 100) $ parseInput input
+        findPointInRangeOfMostBots bots `shouldBe` Coord3d 0 0 0
+
+--  describe "challenge part  2" $ do
+--      it "finds the point that is in the range of most bots" $ do
+--        input <- readFile "resources/input-day23.txt"
+--        let bots = parseInput input
+--        let coordRange = getCoordsInRange [40484603..40484603] [23940992..23958992] [48118000..48120000]
+--        findPointWithMostBots coordRange bots (stubCoord, 0) `shouldBe` Coord3d 0 0 0
 
   describe "testInput part 2" $ do
       it "finds the point that is in the range of most bots" $ do
@@ -21,6 +50,20 @@ spec = do
                     "pos=<10,10,10>, r=5\n"
         let bots = parseInput input
         findPointInRangeOfMostBots bots `shouldBe` Coord3d 12 12 12
+
+  describe "divideBoxInto8" $ do
+    it "should divide the even box into equal parts" $ do
+      let dividedBoxes = divideBoxInto8 $ Box (Coord3d 0 0 0) (Coord3d 3 3 3)
+      length dividedBoxes `shouldBe` 8
+      let volumes = map (\(Box (Coord3d minx miny minz) (Coord3d maxx maxy maxz)) -> (maxx - minx) * (maxy - miny) * (maxz - minz)) dividedBoxes
+      (length $ filter (== 8) volumes) `shouldBe` 8
+    it "should divide the uneven box into equal parts" $ do
+        let dividedBoxes = divideBoxInto8 $ Box (Coord3d 0 0 0) (Coord3d 4 4 4)
+        length dividedBoxes `shouldBe` 8
+        print dividedBoxes
+        let volumes = map (\(Box (Coord3d minx miny minz) (Coord3d maxx maxy maxz)) -> (maxx - minx) * (maxy - miny) * (maxz - minz)) dividedBoxes
+        (length $ filter (== 8) volumes) `shouldBe` 8
+
   describe "challenge part 1" $ do
     it "solves the challenge input" $ do
       input <- readFile "resources/input-day23.txt"
