@@ -4,20 +4,21 @@ import AOC.Util.Coord3D
 import Data.List.Split
 import qualified Data.List as List
 import Data.Sequence
+import qualified Data.Set as Set
 import AOC.Day23.SphereCubeCollisionDetect
 import AOC.Day23.Types
 
 challengeFindPointInRangeOfMostBots bots = do
-  let bestBox = divideIntoBoxesUntilSinglePoint [BoxWithBots (Box (Coord3d 40484603 23948992 48118000) (Coord3d 40484603 23948992 48118500)) bots]
+  let bestBox = divideIntoBoxesUntilSinglePoint [BoxWithBots (Box (Coord3d 30484500 13948900 38118800) (Coord3d 50484500 33948900 58118800)) (Set.fromList bots)]
   minCoord $ box $ bestBox
 
 findPointInRangeOfMostBots bots = do
-  let bestBox = divideIntoBoxesUntilSinglePoint [BoxWithBots (determineBox bots) (fromList bots)]
+  let bestBox = divideIntoBoxesUntilSinglePoint [BoxWithBots (determineBox bots) (Set.fromList bots)]
   minCoord $ box $ bestBox
 
 divideIntoBoxesUntilSinglePoint :: [BoxWithBots] -> BoxWithBots
 divideIntoBoxesUntilSinglePoint boxes
-  | isSinglePoint $ box $ boxes!!0 = boxes!!0
+  | isSinglePoint $ box $ head boxes = head boxes
   | otherwise = divideIntoBoxesUntilSinglePoint (findBestBox boxes [])
 
 isSinglePoint (Box min max) = min == max
@@ -28,11 +29,11 @@ findBestBox (boxWithBots:boxesWithBots) bestDividedBoxes = do
   let dividedBoxes = divideBoxInto8 $ box boxWithBots
   findBestBox boxesWithBots (findBestDividedBoxes dividedBoxes (bots boxWithBots) bestDividedBoxes)
 
-findBestDividedBoxes :: [Box] -> Seq NanoBot -> [BoxWithBots] -> [BoxWithBots]
+findBestDividedBoxes :: [Box] -> Set.Set NanoBot -> [BoxWithBots] -> [BoxWithBots]
 findBestDividedBoxes [] _ best = best
 findBestDividedBoxes (box:boxes) nanoBots bestSoFar
-  | List.null bestSoFar || List.length botsCollidingWithBox > (List.length $ bots $ bestSoFar!!0) = findBestDividedBoxes boxes nanoBots [BoxWithBots box botsCollidingWithBox]
-  | List.length botsCollidingWithBox == (List.length $ bots $ bestSoFar!!0) = findBestDividedBoxes boxes nanoBots ((BoxWithBots box botsCollidingWithBox):bestSoFar)
+  | List.null bestSoFar || List.length botsCollidingWithBox > (List.length $ bots $ head bestSoFar) = findBestDividedBoxes boxes nanoBots [BoxWithBots box botsCollidingWithBox]
+  | List.length botsCollidingWithBox == (List.length $ bots $ head bestSoFar) = findBestDividedBoxes boxes nanoBots ((BoxWithBots box botsCollidingWithBox):bestSoFar)
   | otherwise = findBestDividedBoxes boxes nanoBots bestSoFar
   where botsCollidingWithBox = findBotsThatCollideWithBox box nanoBots
 

@@ -4,7 +4,7 @@ import Test.Hspec
 import Test.QuickCheck
 import AOC.Day23.NanoBots
 import AOC.Util.Coord3D
-import qualified Data.Sequence as Seq
+import qualified Data.Set as Set
 import AOC.Day23.Types
 
 main :: IO ()
@@ -12,26 +12,26 @@ main = hspec spec
 
 spec :: Spec
 spec = do
--- {x = 4048600, y = 2395200, z = 4811900}
+-- {x = 37628955, y = 23286566, z = 50312122}
 -- {x = 40484500, y = 23948900, z = 48118800}
 -- {x = 40484603, y = 23948992, z = 48118900}
 -- {x = 40484603, y = 23948992, z = 48119001}
+-- {x = 37628960, y = 23286570, z = 50312110}
 -- 112552200
 -- 112552495 too high
 -- 113267018 too high Coord3d {x = 39044798, y = 25111110, z = 49111110}
 
---  describe "challenge part  2" $ do
---      it "finds the point that is in the range of most bots" $ do
---        input <- readFile "resources/input-day23.txt"
---        -- map (`divideBot` 100) $
---        let bots = parseInput input
---        challengeFindPointInRangeOfMostBots (Seq.fromList bots) `shouldBe` Coord3d 0 0 0
+  describe "challenge part  2" $ do
+      it "finds the point that is in the range of most bots" $ do
+        input <- readFile "resources/input-day23.txt"
+        let bots = parseInput input
+        challengeFindPointInRangeOfMostBots bots `shouldBe` Coord3d 37628955 23286566 50312122
 
   describe "challenge part  2" $ do
       it "finds the point that is in the range of most bots" $ do
         input <- readFile "resources/input-day23.txt"
-        let bots = map (`divideBot` 100) $ parseInput input
-        findPointInRangeOfMostBots bots `shouldBe` Coord3d 0 0 0
+        let bots = parseInput input
+        findPointInRangeOfMostBots bots `shouldBe` Coord3d 37628955 23286566 50312122
 
 --  describe "challenge part  2" $ do
 --      it "finds the point that is in the range of most bots" $ do

@@ -5,7 +5,7 @@ import Test.QuickCheck
 import AOC.Util.Coord3D
 import AOC.Day23.SphereCubeCollisionDetect
 import AOC.Day23.Types
-import Data.Sequence
+import Data.Set
 
 main :: IO ()
 main = hspec spec

@@ -1,7 +1,7 @@
 module AOC.Day23.Types where
 
 import AOC.Util.Coord3D
-import Data.Sequence
+import Data.Set
 
 -- Axis aligned bounding box https://gdbooks.gitbooks.io/3dcollisions/content/Chapter1/aabb.html
 data Box = Box {
@@ -11,7 +11,7 @@ data Box = Box {
 
 data BoxWithBots = BoxWithBots {
   box :: Box,
-  bots :: Seq NanoBot
+  bots :: Set NanoBot
 } deriving (Show, Eq)
 
 data NanoBot = NanoBot {

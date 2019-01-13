@@ -2,10 +2,10 @@ module AOC.Day23.SphereCubeCollisionDetect where
 
 import AOC.Util.Coord3D
 import AOC.Day23.Types
-import Data.Sequence
+import Data.Set
 
-findBotsThatCollideWithBox :: Box -> Seq NanoBot -> Seq NanoBot
-findBotsThatCollideWithBox box bots = Data.Sequence.filter (`botCollidesWithBox` box) bots
+findBotsThatCollideWithBox :: Box -> Set NanoBot -> Set NanoBot
+findBotsThatCollideWithBox box bots = Data.Set.filter (`botCollidesWithBox` box) bots
 
 botCollidesWithBox :: NanoBot -> Box -> Bool
 botCollidesWithBox (NanoBot botCenter r) box = do
